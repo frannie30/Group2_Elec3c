@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Ecospace;
 
 class User extends Authenticatable
 {
@@ -53,6 +54,18 @@ class User extends Authenticatable
     ];
 
     /**
+     * The attributes that should be cast to native types.
+     * Added userTypeID as integer to avoid type mismatches when comparing.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'userTypeID' => 'integer',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -65,8 +78,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function recipes()
+    public function userType()
     {
-        return $this->hasMany(Recipe::class);
+        return $this->belongsTo(UserType::class, 'userTypeID', 'userTypeID');
+    }
+
+    public function ecospaces()
+    {
+        return $this->hasMany(Ecospace::class, 'userID', 'id');
     }
 }

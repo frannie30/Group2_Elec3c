@@ -15,89 +15,81 @@
                    aria-label="Back to Dashboard">
                     &larr;
                 </a>  
-                <h2 class="text-3xl font-extrabold mb-8 text-center text-pink-700">Edit Recipe</h2>
-<form method="POST" action="{{ route('recipes.update', $recipe->id) }}"
-      onsubmit="return confirm('Are you sure you want to update this recipe?');">
+                <h2 class="text-3xl font-extrabold mb-8 text-center text-pink-700">Edit EcoSpace</h2>
+<form method="POST" action="{{ route('ecospaces.update', $ecospace->ecospaceID) }}" enctype="multipart/form-data"
+    onsubmit="return confirm('Are you sure you want to update this ecospace?');">
     @csrf
     @method('PUT')
 
     <div>
-        <label class="block text-pink-800 font-semibold mb-2">Province</label>
-        <span class="inline-block bg-pink-200 text-pink-800 px-4 py-2 rounded-full font-semibold">
-            {{ $recipe->province->name ?? 'N/A' }}
-        </span>
-        <input type="hidden" name="province_id" value="{{ $recipe->province_id }}">
+        <label class="block text-pink-800 font-semibold mb-2">EcoSpace Name</label>
+        <input type="text" name="ecospaceName" value="{{ old('ecospaceName', $ecospace->ecospaceName) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
     </div>
 
-    <div>
-        <label class="block text-pink-800 font-semibold mb-2">Dish Name</label>
-        <span class="inline-block bg-pink-100 text-pink-800 px-4 py-2 rounded-full font-semibold">
-            {{ $recipe->name }}
-        </span>
-        <input type="hidden" name="name" value="{{ $recipe->name }}">
+    <div class="mt-4">
+        <label class="block text-pink-800 font-semibold mb-2">Address</label>
+        <input type="text" name="ecospaceAdd" value="{{ old('ecospaceAdd', $ecospace->ecospaceAdd) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
     </div>
 
-    <div>
-        <label for="description" class="block text-pink-800 font-semibold mb-2">Dish Description</label>
-        <textarea id="description" name="description" rows="4" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition">{{ old('description', $recipe->description) }}</textarea>
+    <div class="mt-4">
+        <label for="ecospaceDesc" class="block text-pink-800 font-semibold mb-2">Description</label>
+        <textarea id="ecospaceDesc" name="ecospaceDesc" rows="4" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50">{{ old('ecospaceDesc', $ecospace->ecospaceDesc) }}</textarea>
     </div>
 
-    <div x-data="{ ingredients: {{ json_encode(old('ingredients', $recipe->ingredients ?? [])) }}, newIngredient: '' }" class="mb-4">
-        <label class="block text-pink-800 font-semibold mb-2">Ingredients</label>
-
-        <div class="flex gap-2 mb-2">
-            <input type="text" x-model="newIngredient"
-                   class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50"
-                   placeholder="Type ingredient and click Add">
-            <button type="button"
-                    class="bg-pink-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-pink-700"
-                    @click="if(newIngredient.trim() !== '') { ingredients.push(newIngredient.trim()); newIngredient=''; }">
-                Add
-            </button>
+    <div class="mt-4 grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-pink-800 font-semibold mb-2">Opening Hours</label>
+            <input type="text" name="openingHours" value="{{ old('openingHours', $ecospace->openingHours) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
         </div>
-
-        <template x-for="(ing, index) in ingredients" :key="index">
-            <div class="flex items-center gap-2 mb-1">
-                <input type="hidden" :name="'ingredients['+index+']'" :value="ing">
-                <span class="flex-1" x-text="ing"></span>
-                <button type="button" class="text-red-500 font-bold"
-                        @click="ingredients.splice(index,1)">
-                    Remove
-                </button>
-            </div>
-        </template>
-    </div>
-
-    <div x-data="{ steps: {{ json_encode(old('recipe', $recipe->recipe ?? [])) }}, newStep: '' }" class="mb-4">
-        <label class="block text-pink-800 font-semibold mb-2">Recipe Steps</label>
-
-        <div class="flex gap-2 mb-2">
-            <input type="text" x-model="newStep"
-                   class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50"
-                   placeholder="Type step and click Add">
-            <button type="button"
-                    class="bg-pink-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-pink-700"
-                    @click="if(newStep.trim() !== '') { steps.push(newStep.trim()); newStep=''; }">
-                Add
-            </button>
+        <div>
+            <label class="block text-pink-800 font-semibold mb-2">Closing Hours</label>
+            <input type="text" name="closingHours" value="{{ old('closingHours', $ecospace->closingHours) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
         </div>
-
-        <template x-for="(step, index) in steps" :key="index">
-            <div class="flex items-center gap-2 mb-1">
-                <input type="hidden" :name="'recipe['+index+']'" :value="step">
-                <span class="flex-1">Step <span x-text="index+1"></span>: <span x-text="step"></span></span>
-                <button type="button" class="text-red-500 font-bold"
-                        @click="steps.splice(index,1)">
-                    Remove
-                </button>
-            </div>
-        </template>
     </div>
 
+    <div class="mt-4">
+        <label class="block text-pink-800 font-semibold mb-2">Days Opened</label>
+        <input type="text" name="daysOpened" value="{{ old('daysOpened', $ecospace->daysOpened) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
+    </div>
 
-    <div class="flex justify-center gap-4">
+    <div class="mt-4">
+        <label class="block text-pink-800 font-semibold mb-2">Price Tier</label>
+        <select name="priceTierID" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50">
+            <option value="">-- Keep current --</option>
+            @foreach($pricetiers as $pt)
+                <option value="{{ $pt->priceTierID }}" {{ (old('priceTierID', $ecospace->priceTierID) == $pt->priceTierID) ? 'selected' : '' }}>{{ $pt->pricetier }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    {{-- Existing images: carousel + remove checkboxes --}}
+    <div class="mt-4">
+        <label class="block text-pink-800 font-semibold mb-2">Existing Images</label>
+        @if($ecospace->images && $ecospace->images->count())
+            <div class="flex items-center gap-4 mb-2">
+                @foreach($ecospace->images as $img)
+                    <div class="flex flex-col items-center">
+                        <img src="{{ Storage::url($img->path) }}" alt="image" class="w-32 h-20 object-cover rounded-md border mb-2" />
+                        <label class="text-sm text-pink-700">
+                            <input type="checkbox" name="images_to_remove[]" value="{{ $img->esImageID }}"> Remove
+                        </label>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-sm text-pink-500">No images uploaded.</div>
+        @endif
+    </div>
+
+    <div class="mt-4">
+        <label class="block text-pink-800 font-semibold mb-2">Add Images</label>
+        <input type="file" name="images[]" multiple accept="image/*" class="w-full border-2 border-pink-200 rounded-xl px-4 py-2 bg-pink-50" />
+        <p class="text-sm text-pink-500 mt-2">You can upload additional images (max 5MB each).</p>
+    </div>
+
+    <div class="flex justify-center gap-4 mt-6">
         <button type="submit" class="bg-pink-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-pink-700 hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-pink-400">
-            Update Recipe
+            Update EcoSpace
         </button>
         <a href="{{ route('index.index') }}" class="bg-gray-300 text-pink-800 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-400 hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-pink-400 text-center"
            onclick="return confirm('Are you sure you want to cancel editing? Any unsaved changes will be lost.');">

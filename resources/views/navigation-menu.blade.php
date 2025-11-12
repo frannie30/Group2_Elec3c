@@ -19,8 +19,8 @@
                         <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-pink-900 hover:bg-pink-200 border-pink-400">
                             {{ __('Dashboard') }}
                         </x-nav-link>
-                        <x-nav-link href="{{ url('submitrecipe') }}" :active="request()->is('submitrecipe')" class="text-pink-900 hover:bg-pink-200 border-pink-400">
-                            {{ __('Submit a Recipe') }}
+                        <x-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-pink-900 hover:bg-pink-200 border-pink-400">
+                            {{ __('Submit an EcoSpace') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -98,7 +98,7 @@
                                     {{ __('API Tokens') }}
                                 </x-dropdown-link>
                             @endif
-                            @if(Auth::user() && Auth::user()->role === 'admin')
+                            @if(Auth::user() && Auth::user()->userTypeID === 1)
                                 @if(request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index'))
                                     <x-dropdown-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-pink-900 hover:bg-pink-100">
                                         {{ __('Dashboard') }}
@@ -138,8 +138,8 @@
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ url('submitrecipe') }}" :active="request()->is('submitrecipe')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
-                {{ __('Submit a Recipe') }}
+            <x-responsive-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
+                {{ __('Submit an EcoSpace') }}
             </x-responsive-nav-link>
         </div>
         <!-- Responsive Settings Options -->

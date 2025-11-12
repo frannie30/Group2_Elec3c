@@ -2,25 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\UserController;
-
-use App\Http\Middleware\CheckRole; // Make sure to import your middleware
-
-
+use App\Http\Controllers\EcospaceController;
+use App\Http\Middleware\CheckRole;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-
-
 Route::get('/contactus', [GuestController::class, 'contactus'])->name('contactus.index');
-
 Route::get('/privacy', [GuestController::class, 'privacy'])->name('privacy.index');
-
 Route::get('/creator', [GuestController::class, 'creator'])->name('creator.index');
-
 Route::get('/website', [GuestController::class, 'website'])->name('website.index');
 
 Route::middleware([
@@ -29,27 +20,27 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
-    Route::get('/recipe', [UserController::class, 'showRecipe'])->name('recipe');
-    Route::get('/submitrecipe', [UserController::class, 'submitRecipe'])->name('submitrecipe');
-   Route::match(['get', 'post'], '/province', [UserController::class, 'showProvince'])
-        ->name('province');
+    // Dashboard shows approved ecospaces
+    Route::get('/dashboard', [EcospaceController::class, 'dashboard'])->name('dashboard');
 
-    Route::match(['get', 'post'], '/users/store', [UserController::class, 'store'])->name('users.store');
-    Route::get('/region-filter', [UserController::class, 'filterProvincesByRegion'])->name('region.filter');
+    // EcoSpace-facing (user)
+    Route::get('/ecospace', [EcospaceController::class, 'showEcospace'])->name('ecospace');
+    Route::get('/submitecospace', [EcospaceController::class, 'submitEcospace'])->name('submitecospace');
+    Route::match(['get', 'post'], '/users/store', [EcospaceController::class, 'store'])->name('ecospaces.store');
 
-        Route::middleware(CheckRole::class)->group(function () {
-            Route::get('/create', [AdminController::class, 'create'])->name('create.index');
-            Route::get('/edit', [AdminController::class, 'edit'])->name('edit.index');
-            Route::get('/index', [AdminController::class, 'index'])->name('index.index');
-            Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
-            Route::post('/admin/recipe/{id}/remove', [AdminController::class, 'remove'])->name('admin.recipe.remove');
-            Route::get('/admin/recipe/{id}/edit', [AdminController::class, 'edit'])->name('edit.index');
-            Route::put('/recipes/{id}', [AdminController::class, 'update'])->name('recipes.update');
-            Route::get('/archives', [AdminController::class, 'archives'])->name('archives.index');
-            Route::post('/admin/recipes/{id}/restore', [AdminController::class, 'restore'])->name('admin.recipes.restore');
-            Route::post('/admin/recipes/{id}/delete', [AdminController::class, 'delete'])->name('admin.recipes.delete');
+    // Admin-only ecospace management
+    Route::middleware(CheckRole::class)->group(function () {
+        Route::get('/create', [EcospaceController::class, 'create'])->name('create.index');
+        Route::get('/index', [EcospaceController::class, 'index'])->name('index.index');
 
-        });
+    Route::post('/admin/approve/{id}', [EcospaceController::class, 'approve'])->name('admin.ecospace.approve');
+    Route::post('/admin/recipe/{id}/remove', [EcospaceController::class, 'remove'])->name('admin.ecospace.remove');
 
+        Route::get('/admin/recipe/{id}/edit', [EcospaceController::class, 'edit'])->name('edit.index');
+    Route::put('/recipes/{id}', [EcospaceController::class, 'update'])->name('ecospaces.update');
+
+        Route::get('/archives', [EcospaceController::class, 'archives'])->name('archives.index');
+    Route::post('/admin/recipes/{id}/restore', [EcospaceController::class, 'restore'])->name('admin.ecospaces.restore');
+    Route::post('/admin/recipes/{id}/delete', [EcospaceController::class, 'delete'])->name('admin.ecospaces.delete');
+    });
 });
