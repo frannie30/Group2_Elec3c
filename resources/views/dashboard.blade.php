@@ -58,6 +58,48 @@
                     {{ $ecospaces->links() }}
                 @endif
             </div>
+            
+            <!-- Events Grid -->
+            <div class="mt-16">
+                <h3 class="text-2xl font-extrabold text-pink-700 mb-6">Events</h3>
+                <div id="event-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+                    @if(isset($events) && $events->count())
+                        @foreach($events as $event)
+                            @php
+                                $firstImg = $event->images->first();
+                                $imgUrl = $firstImg ? Storage::url($firstImg->path) : null;
+                            @endphp
+                            <div class="bg-white/90 border border-pink-200 rounded-2xl shadow-lg overflow-hidden">
+                                @if($imgUrl)
+                                    <img src="{{ $imgUrl }}" alt="{{ $event->eventName }}" class="w-full h-44 object-cover" />
+                                @else
+                                    <div class="w-full h-44 bg-pink-50 flex items-center justify-center text-pink-400">No image</div>
+                                @endif
+                                <div class="p-4">
+                                    <h4 class="text-xl font-bold text-pink-800">{{ $event->eventName }}</h4>
+                                    <p class="text-sm text-pink-600 mb-2">{{ $event->eventAdd ?? 'Address unavailable' }}</p>
+                                    <p class="text-sm text-pink-500 mb-3">{{ Str::limit($event->eventDesc ?? 'No description provided.', 120) }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-pink-700 font-semibold">{{ $event->priceTier->pricetier ?? 'N/A' }}</span>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm text-pink-600">{{ optional($event->eventDate)->format('M d, Y H:i') ?? $event->eventDate }}</span>
+                                            <a href="{{ route('events.show', ['id' => $event->eventID]) }}" class="bg-pink-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="col-span-full text-center text-pink-600">No events found.</div>
+                    @endif
+                </div>
+
+                <div class="mt-10 flex justify-center">
+                    @if(isset($events))
+                        {{ $events->links() }}
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

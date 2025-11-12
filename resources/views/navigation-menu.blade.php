@@ -22,6 +22,9 @@
                         <x-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-pink-900 hover:bg-pink-200 border-pink-400">
                             {{ __('Submit an EcoSpace') }}
                         </x-nav-link>
+                        <x-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')" class="text-pink-900 hover:bg-pink-200 border-pink-400">
+                            {{ __('Submit an Event') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -134,12 +137,15 @@
     </div>
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-white border-t border-pink-400 rounded-b-2xl shadow-lg">
-        <div class="pt-4 pb-3 space-y-2 px-4">
+            <div class="pt-4 pb-3 space-y-2 px-4">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
                 {{ __('Submit an EcoSpace') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')" class="text-pink-900 bg-pink-100 hover:bg-pink-200 border-pink-400">
+                {{ __('Submit an Event') }}
             </x-responsive-nav-link>
         </div>
         <!-- Responsive Settings Options -->

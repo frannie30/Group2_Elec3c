@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\EcospaceController;
+use App\Http\Controllers\EventController;
 use App\Http\Middleware\CheckRole;
 
 Route::get('/', function () {
@@ -28,6 +29,11 @@ Route::middleware([
     Route::get('/submitecospace', [EcospaceController::class, 'submitEcospace'])->name('submitecospace');
     Route::match(['get', 'post'], '/users/store', [EcospaceController::class, 'store'])->name('ecospaces.store');
 
+    // Event-facing (user)
+    Route::get('/submitevent', [EventController::class, 'submitEvent'])->name('submitevent');
+    Route::post('/events/store', [EventController::class, 'store'])->name('events.store');
+    Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show');
+
     // Admin-only ecospace management
     Route::middleware(CheckRole::class)->group(function () {
         Route::get('/create', [EcospaceController::class, 'create'])->name('create.index');
@@ -35,6 +41,14 @@ Route::middleware([
 
     Route::post('/admin/approve/{id}', [EcospaceController::class, 'approve'])->name('admin.ecospace.approve');
     Route::post('/admin/recipe/{id}/remove', [EcospaceController::class, 'remove'])->name('admin.ecospace.remove');
+
+    // Admin event moderation
+    Route::post('/admin/event/{id}/approve', [EventController::class, 'approve'])->name('admin.event.approve');
+    Route::post('/admin/event/{id}/remove', [EventController::class, 'remove'])->name('admin.event.remove');
+    Route::get('/admin/event/{id}/edit', [EventController::class, 'edit'])->name('admin.event.edit');
+    Route::put('/events/{id}', [EventController::class, 'update'])->name('events.update');
+    Route::post('/admin/events/{id}/restore', [EventController::class, 'restore'])->name('admin.events.restore');
+    Route::post('/admin/events/{id}/delete', [EventController::class, 'delete'])->name('admin.events.delete');
 
         Route::get('/admin/recipe/{id}/edit', [EcospaceController::class, 'edit'])->name('edit.index');
     Route::put('/recipes/{id}', [EcospaceController::class, 'update'])->name('ecospaces.update');

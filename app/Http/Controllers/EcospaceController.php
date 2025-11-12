@@ -6,6 +6,7 @@ use App\Models\Ecospace;
 use App\Models\Status;
 use App\Models\PriceTier;
 use App\Models\Image;
+use App\Models\Event;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -39,8 +40,21 @@ class EcospaceController extends Controller
             })
             ->paginate(12);
 
+        // Also load approved events for the public dashboard
+        $events = Event::with(['images', 'priceTier'])
+            ->where('statusID', 2)
+            ->whereNull('deleted_at')
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('eventName', 'like', "%{$search}%")
+                      ->orWhere('eventAdd', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(12, ['*'], 'events_page');
+
         return view('dashboard', [
             'ecospaces' => $ecospaces,
+            'events' => $events,
             'search' => $search,
         ]);
     }
@@ -117,7 +131,12 @@ class EcospaceController extends Controller
         $ecospaces = Ecospace::where('statusID', 1)
             ->with(['user', 'status', 'priceTier'])
             ->paginate(5);
-        return view('admin.create', compact('ecospaces'));
+        // Also fetch pending events for the admin create page
+        $events = Event::where('statusID', 1)
+            ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->paginate(5, ['*'], 'events_page');
+
+        return view('admin.create', compact('ecospaces', 'events'));
     }
 
     // Admin-facing: list approved ecospaces
@@ -127,7 +146,12 @@ class EcospaceController extends Controller
         $ecospaces = Ecospace::where('statusID', 2)
             ->with(['user', 'status', 'priceTier'])
             ->paginate(5);
-        return view('admin.index', compact('ecospaces'));
+        // Also load approved events for display on admin dashboard
+        $events = Event::where('statusID', 2)
+            ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->paginate(5, ['*'], 'events_page');
+
+        return view('admin.index', compact('ecospaces', 'events'));
     }
 
     public function archives()
@@ -137,7 +161,13 @@ class EcospaceController extends Controller
             ->where('statusID', 3)
             ->with(['user', 'status', 'priceTier'])
             ->paginate(5);
-        return view('admin.archives', compact('ecospaces'));
+        // Also fetch trashed events (statusID = 3) for display in archives
+        $events = Event::onlyTrashed()
+            ->where('statusID', 3)
+            ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->paginate(5, ['*'], 'events_page');
+
+        return view('admin.archives', compact('ecospaces', 'events'));
     }
 
     public function approve($id)

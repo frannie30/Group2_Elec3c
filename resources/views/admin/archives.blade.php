@@ -104,6 +104,68 @@
                 </div>
                 {{ $ecospaces->links() }}
                 
+                <!-- Archived Events Table -->
+                <h2 class="text-3xl font-extrabold mt-12 mb-6 text-center text-pink-700">Event Archives</h2>
+                <h2 class="text-xl font-bold mb-4 text-pink-800">Here are the events you have removed</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-pink-200 rounded-xl shadow">
+                        <thead class="bg-pink-100">
+                            <tr>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">User</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Event</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Address</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Date</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Images</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Description</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Price Tier</th>
+                                <th class="px-6 py-3 border-b text-left text-pink-800 font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @forelse($events ?? collect() as $event)
+                            <tr class="hover:bg-pink-200 transition">
+                                <td class="px-6 py-4 border-b align-top">{{ $event->user->name ?? 'Unknown' }}</td>
+                                <td class="px-6 py-4 border-b align-top">{{ $event->eventName }}</td>
+                                <td class="px-6 py-4 border-b align-top">{{ $event->eventAdd ?? 'Unknown' }}</td>
+                                <td class="px-6 py-4 border-b align-top">{{ optional($event->eventDate)->format('M d, Y H:i') ?? $event->eventDate }}</td>
+                                <td class="px-6 py-4 border-b align-top">
+                                    @php
+                                        $imgs = $event->images->pluck('path')->map(fn($p) => Storage::url($p))->toArray();
+                                    @endphp
+                                    @if(count($imgs))
+                                        <img src="{{ $imgs[0] }}" alt="event image" class="w-24 h-16 object-cover rounded-md border" />
+                                    @else
+                                        <span class="text-sm text-pink-500">No images</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 border-b align-top">{{ $event->eventDesc }}</td>
+                                <td class="px-6 py-4 border-b align-top">{{ $event->priceTier->pricetier ?? 'N/A' }}</td>
+                                <td class="px-6 py-4 border-b align-top">
+                                    <div class="flex flex-col items-stretch gap-3">
+                                        <form method="POST" action="{{ route('admin.events.restore', $event->eventID) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="w-full flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-pink-700 transition focus:outline-none focus:ring-2 focus:ring-pink-400">Restore</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('admin.events.delete', $event->eventID) }}" style="display:inline;" onsubmit="return confirm('Are you sure? This will permanently delete the event!');">
+                                            @csrf
+                                            <button type="submit" class="w-full flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold shadow hover:bg-red-200 transition focus:outline-none focus:ring-2 focus:ring-red-400">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-6 py-4 border-b text-center text-pink-600">No archived events found.</td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6">
+                    {{ isset($events) ? $events->links() : '' }}
+                </div>
+                
                 {{-- Carousel script: handles prev/next per ecospace by id --}}
                 <script>
                     function carouselNext(id) {
