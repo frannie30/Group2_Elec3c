@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Guestlist;
+use App\Models\Review;
+use App\Models\Status;
 
 class Event extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     // Map to the tbl_events table created by the project's migration
     protected $table = 'tbl_events';
@@ -24,6 +28,7 @@ class Event extends Model
         'eventDate',
         'eventDesc',
         'isDone',
+        'isFinished',
     ];
 
     public function user()
@@ -34,6 +39,19 @@ class Event extends Model
     public function images()
     {
         return $this->hasMany(EventImage::class, 'eventID', 'eventID');
+    }
+
+    public function guestlists()
+    {
+        return $this->hasMany(Guestlist::class, 'eventID', 'eventID');
+    }
+
+    /**
+     * Attendees relation (only guestlist rows where isGoing = 1)
+     */
+    public function attendees()
+    {
+        return $this->hasMany(Guestlist::class, 'eventID', 'eventID')->where('isGoing', true);
     }
 
     public function priceTier()
@@ -48,6 +66,11 @@ class Event extends Model
 
     public function status()
     {
-        return $this->belongsTo(\App\Models\Status::class, 'statusID', 'statusID');
+        return $this->belongsTo(Status::class, 'statusID', 'statusID');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'eventID', 'eventID');
     }
 }

@@ -22,7 +22,13 @@
         <x-banner />
 
         <div class="min-h-screen bg-gray-100">
-            @livewire('navigation-menu')
+            @php
+                // Hide the navigation menu on admin routes or when explicitly requested.
+                $isAdminRoute = request()->route() ? request()->route()->getName() && str_starts_with(request()->route()->getName(), 'admin.') : false;
+            @endphp
+            @if (empty($hideNavbar) && !($isAdminRoute || request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index')))
+                @livewire('navigation-menu')
+            @endif
 
             <!-- Page Heading -->
             @if (isset($header))

@@ -9,7 +9,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Ecospace;
+use App\Models\EsBookmark;
+use App\Models\EvBookmark;
 
 class User extends Authenticatable
 {
@@ -20,6 +23,7 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -63,6 +67,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'userTypeID' => 'integer',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -86,5 +91,15 @@ class User extends Authenticatable
     public function ecospaces()
     {
         return $this->hasMany(Ecospace::class, 'userID', 'id');
+    }
+
+    public function esBookmarks()
+    {
+        return $this->hasMany(EsBookmark::class, 'userID', 'id');
+    }
+
+    public function evBookmarks()
+    {
+        return $this->hasMany(EvBookmark::class, 'userID', 'id');
     }
 }

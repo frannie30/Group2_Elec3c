@@ -7,10 +7,18 @@ use App\Models\Status;
 use App\Models\PriceTier;
 use App\Models\Image;
 use App\Models\Event;
+use App\Models\EvBookmark;
+use App\Models\EsBookmark;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request as HttpRequest;
+use App\Models\ProAndCon;
+use App\Models\User;
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EcospaceController extends Controller
 {
@@ -19,7 +27,7 @@ class EcospaceController extends Controller
     {
     // Only provide price tiers to the form; status is forced to pending (1)
     $pricetiers = PriceTier::all();
-    return view('users.submitecospace', compact('pricetiers'));
+    return view('ecospaces.submitecospace', compact('pricetiers'));
     }
 
     /**
@@ -29,44 +37,467 @@ class EcospaceController extends Controller
     {
         $search = $request->input('search');
 
-        $ecospaces = Ecospace::with(['images', 'priceTier'])
+        // Build base query for approved ecospaces
+        $baseQuery = Ecospace::with(['images', 'priceTier'])
             ->where('statusID', 2)
             ->whereNull('deleted_at')
             ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('ecospaceName', 'like', "%{$search}%")
-                      ->orWhere('ecospaceAdd', 'like', "%{$search}%");
-                });
-            })
-            ->paginate(12);
+                // Only search by ecospace name from global navigation search
+                return $query->where('ecospaceName', 'like', "%{$search}%");
+            });
 
-        // Also load approved events for the public dashboard
-        $events = Event::with(['images', 'priceTier'])
-            ->where('statusID', 2)
-            ->whereNull('deleted_at')
-            ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('eventName', 'like', "%{$search}%")
-                      ->orWhere('eventAdd', 'like', "%{$search}%");
-                });
-            })
-            ->paginate(12, ['*'], 'events_page');
+        // For the dashboard we only want to display a small preview (4 cards)
+        $ecospaces = (clone $baseQuery)->take(4)->get();
+
+        // Events removed from dashboard: moved to dedicated Events page
+
+        $bookmarkedEvents = [];
+        $bookmarkedEcospaces = [];
+        if (auth()->check()) {
+            // Defer to bookmark models (tbl_evbookmarks, tbl_esbookmarks)
+            $bookmarkedEvents = EvBookmark::where('userID', auth()->id())->pluck('eventID')->toArray();
+            $bookmarkedEcospaces = EsBookmark::where('userID', auth()->id())->pluck('ecospaceID')->toArray();
+        }
 
         return view('dashboard', [
             'ecospaces' => $ecospaces,
-            'events' => $events,
             'search' => $search,
+            'bookmarkedEvents' => $bookmarkedEvents,
+            'bookmarkedEcospaces' => $bookmarkedEcospaces,
+        ]);
+    }
+
+    /**
+     * Public page listing all approved ecospaces (paginated).
+     */
+    public function all(HttpRequest $request)
+    {
+        // Debug: log incoming query parameters to help troubleshoot sorting/filtering
+        Log::debug('EcospaceController@all query', $request->query());
+
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'newest');
+        $hasReviews = $request->input('has_reviews', 'all');
+        // support multiple star filters (e.g. stars[]=5&stars[]=4) and '0' for no reviews
+        $stars = $request->input('stars', []);
+        if (!is_array($stars)) {
+            $stars = [$stars];
+        }
+        // whether to only show currently open ecospaces
+        $openNow = $request->boolean('open_now', false);
+
+        // Build base query for approved ecospaces
+        // Include review aggregates to support sorting by review averages
+        $baseQuery = Ecospace::with(['images', 'priceTier'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->where('statusID', 2)
+            ->whereNull('deleted_at')
+            ->when($search, function ($query, $search) {
+                // Only search by ecospace name from global navigation search
+                return $query->where('ecospaceName', 'like', "%{$search}%");
+            });
+
+        // Filtering by presence/absence of reviews
+        if ($hasReviews === 'with') {
+            $baseQuery = $baseQuery->has('reviews');
+        } elseif ($hasReviews === 'without') {
+            $baseQuery = $baseQuery->doesntHave('reviews');
+        }
+
+        // Note: support for multiple star selections and "0" (no reviews) is handled after fetching
+        // because the rounded average and absence-of-reviews are easier to evaluate in PHP
+        // given the flexible set of requested values.
+
+        // Sorting options:
+        // - a-z / z-a => ecospaceName asc/desc
+        // - highest / lowest => average review rating desc/asc
+        // - newest => dateCreated desc
+        switch ($sort) {
+            case 'a-z':
+                $baseQuery = $baseQuery->orderBy('ecospaceName', 'asc');
+                break;
+            case 'z-a':
+                $baseQuery = $baseQuery->orderBy('ecospaceName', 'desc');
+                break;
+            case 'highest':
+                $baseQuery = $baseQuery->orderByDesc('reviews_avg_rating');
+                break;
+            case 'lowest':
+                $baseQuery = $baseQuery->orderBy('reviews_avg_rating');
+                break;
+            default:
+                $baseQuery = $baseQuery->orderByDesc('dateCreated');
+                break;
+        }
+
+        // If no special post-filters (multiple stars or open_now) are requested,
+        // we can paginate directly using the query builder.
+        $needsPostFilter = $openNow || (is_array($stars) && count($stars) > 0 && !(count($stars) === 1 && in_array('', $stars, true)));
+
+        if (!$needsPostFilter) {
+            $ecospaces = $baseQuery->paginate(12)->withQueryString();
+        } else {
+            // Fetch all matching rows (reasonable for moderate datasets) and apply PHP-side filters:
+            $all = $baseQuery->get();
+
+            // Normalize star filters to a set of integers (allowed 0..5)
+            $starSet = collect($stars)->filter(fn($s) => in_array((string)$s, ['0','1','2','3','4','5'], true))->map(fn($s) => (int)$s)->unique()->values()->all();
+
+            $filtered = $all->filter(function ($ecospace) use ($starSet, $openNow) {
+                // 1) Star filtering
+                if (!empty($starSet)) {
+                    $rounded = null;
+                    if (isset($ecospace->reviews_avg_rating) && $ecospace->reviews_avg_rating !== null) {
+                        $rounded = (int) round($ecospace->reviews_avg_rating);
+                    }
+
+                    $hasReviewsCount = isset($ecospace->reviews_count) ? (int) $ecospace->reviews_count : ($ecospace->reviews()->count() ?? 0);
+
+                    $matchStars = false;
+                    foreach ($starSet as $star) {
+                        if ($star === 0) {
+                            if ($hasReviewsCount === 0) { $matchStars = true; break; }
+                        } else {
+                            if ($rounded !== null && $rounded === $star) { $matchStars = true; break; }
+                        }
+                    }
+
+                    if (!$matchStars) return false;
+                }
+
+                // 2) Open-now filtering
+                if ($openNow) {
+                    try {
+                        $status = $this->computeOpenStatus($ecospace);
+                        if (!isset($status['isOpenNow']) || $status['isOpenNow'] !== true) {
+                            return false;
+                        }
+                    } catch (\Throwable $e) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })->values();
+
+            // Manual pagination for filtered collection
+            $perPage = 12;
+            $page = (int) ($request->query('page', 1));
+            $offset = ($page - 1) * $perPage;
+            $paginatedItems = $filtered->slice($offset, $perPage)->values();
+
+            $ecospaces = new LengthAwarePaginator($paginatedItems, $filtered->count(), $perPage, $page, [
+                'path' => url()->current(),
+                'pageName' => 'page',
+            ]);
+            $ecospaces->appends($request->query());
+        }
+
+        $bookmarkedEvents = [];
+        $bookmarkedEcospaces = [];
+        if (auth()->check()) {
+            $bookmarkedEvents = EvBookmark::where('userID', auth()->id())->pluck('eventID')->toArray();
+            $bookmarkedEcospaces = EsBookmark::where('userID', auth()->id())->pluck('ecospaceID')->toArray();
+        }
+
+        return view('ecospaces.index', [
+            'ecospaces' => $ecospaces,
+            'search' => $search,
+            'bookmarkedEvents' => $bookmarkedEvents,
+            'bookmarkedEcospaces' => $bookmarkedEcospaces,
         ]);
     }
 
     // User-facing: show an ecospace by name (query string: name)
     public function showEcospace(Request $request)
     {
+        // Debug: log incoming query parameters for reviews sorting/filtering
+        Log::debug('EcospaceController@showEcospace query', $request->query());
+
         $name = $request->input('name');
 
-        $ecospace = $name ? Ecospace::where('ecospaceName', $name)->first() : null;
+        $ecospace = null;
+        if ($name) {
+            $ecospace = Ecospace::with(['images', 'priceTier', 'status', 'user'])->where('ecospaceName', $name)->first();
 
-        return view('users.ecospace', compact('name', 'ecospace'));
+            if ($ecospace) {
+                // Allow filtering of the pros/cons panel via `pc` query param: 'both' (default), 'pros', 'cons'
+                $pcFilter = request()->query('pc', 'both');
+
+                // Load only the requested type to avoid unnecessary queries when user filters
+                if ($pcFilter === 'pros') {
+                    $pros = ProAndCon::where('ecospaceID', $ecospace->ecospaceID)
+                        ->where('isPro', 1)
+                        ->with('user')
+                        ->orderByDesc('dateCreated')
+                        ->paginate(5, ['*'], 'pros_page')
+                        ->withQueryString();
+
+                    $cons = collect();
+                } elseif ($pcFilter === 'cons') {
+                    $cons = ProAndCon::where('ecospaceID', $ecospace->ecospaceID)
+                        ->where('isPro', 0)
+                        ->with('user')
+                        ->orderByDesc('dateCreated')
+                        ->paginate(5, ['*'], 'cons_page')
+                        ->withQueryString();
+
+                    $pros = collect();
+                } else {
+                    // both
+                    $pros = ProAndCon::where('ecospaceID', $ecospace->ecospaceID)
+                        ->where('isPro', 1)
+                        ->with('user')
+                        ->orderByDesc('dateCreated')
+                        ->paginate(5, ['*'], 'pros_page')
+                        ->withQueryString();
+
+                    $cons = ProAndCon::where('ecospaceID', $ecospace->ecospaceID)
+                        ->where('isPro', 0)
+                        ->with('user')
+                        ->orderByDesc('dateCreated')
+                        ->paginate(5, ['*'], 'cons_page')
+                        ->withQueryString();
+                }
+
+                // Paginate reviews 5 per page; use a named page param to avoid conflicts
+                // Apply optional rating filter and sort from query params for server-side handling
+                $ratingFilter = request()->query('rating'); // 1..5
+                $sort = request()->query('sort', 'newest'); // newest, oldest, highest, lowest
+
+                $reviewsQuery = $ecospace->reviews()->with(['images', 'user']);
+
+                if ($ratingFilter && in_array((string)$ratingFilter, ['1','2','3','4','5'])) {
+                    // Filter by rounded rating value for compatibility with fractional ratings
+                    $reviewsQuery = $reviewsQuery->whereRaw('ROUND(rating) = ?', [(int)$ratingFilter]);
+                }
+
+                if ($sort === 'highest') {
+                    $reviewsQuery = $reviewsQuery->orderByDesc('rating');
+                } elseif ($sort === 'lowest') {
+                    $reviewsQuery = $reviewsQuery->orderBy('rating');
+                } elseif ($sort === 'oldest') {
+                    $reviewsQuery = $reviewsQuery->orderBy('dateCreated');
+                } else {
+                    $reviewsQuery = $reviewsQuery->orderByDesc('dateCreated');
+                }
+
+                $reviews = $reviewsQuery->paginate(5, ['*'], 'reviews_page')->withQueryString();
+
+                // Debug: log paginator class and count to help diagnose pagination issues
+                try {
+                    Log::debug('Ecospace show - reviews paginator', [
+                        'class' => is_object($reviews) ? get_class($reviews) : gettype($reviews),
+                        'count' => is_countable($reviews) ? count($reviews) : null,
+                        'total' => method_exists($reviews, 'total') ? $reviews->total() : null,
+                        'pageName' => method_exists($reviews, 'getPageName') ? $reviews->getPageName() : 'reviews_page',
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::debug('Ecospace show - reviews debug failed: ' . $e->getMessage());
+                }
+            } else {
+                $pros = collect();
+                $cons = collect();
+                $reviews = collect();
+            }
+        }
+
+        // Overall review stats and images (used for carousel and summary)
+        $reviewCount = 0;
+        $avgRating = null;
+        $reviewImgs = [];
+        $reviewStarsTotal = 0;
+        $latestReviewDate = null;
+        if (!empty($ecospace)) {
+            $reviewCount = (int) $ecospace->reviews()->count();
+            $avgRating = $reviewCount ? (float) $ecospace->reviews()->avg('rating') : null;
+            // Sum of all rating values (total stars across all reviews)
+            $reviewStarsTotal = $ecospace->reviews()->sum('rating');
+            $reviewImgs = $ecospace->reviews()->with('images')->get()->flatMap(function($r){
+                return $r->images->pluck('revImgName')->map(fn($p) => Storage::url($p));
+            })->toArray();
+            // Latest review date (short format, e.g., "Nov 16")
+            $latest = $ecospace->reviews()->orderByDesc('dateCreated')->value('dateCreated');
+            if ($latest) {
+                $latestReviewDate = Carbon::parse($latest)->format('M d');
+            }
+            // compute open/closed for the view as well
+            $openResult = $this->computeOpenStatus($ecospace);
+            $isOpenNow = $openResult['isOpenNow'] ?? null;
+            $openUntil = $openResult['openUntil'] ?? null;
+        }
+
+        return view('ecospaces.show', compact('name', 'ecospace', 'pros', 'cons', 'reviews', 'reviewCount', 'avgRating', 'reviewImgs', 'reviewStarsTotal', 'latestReviewDate', 'isOpenNow', 'openUntil'));
+    }
+
+    /**
+     * API endpoint: return JSON indicating whether an ecospace is open now.
+     * Accepts query params: `id` (ecospaceID) or `name` (ecospaceName).
+     */
+    public function openStatusApi(Request $request): JsonResponse
+    {
+        $id = $request->query('id');
+        $name = $request->query('name');
+
+        $ecospace = null;
+        if ($id) {
+            $ecospace = Ecospace::find($id);
+        } elseif ($name) {
+            $ecospace = Ecospace::where('ecospaceName', $name)->first();
+        }
+
+        if (!$ecospace) {
+            return response()->json(['error' => 'Ecospace not found'], 404);
+        }
+
+        $result = $this->computeOpenStatus($ecospace);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Compute open/closed status for an ecospace.
+     * Returns array: ['isOpenNow' => true|false|null, 'openUntil' => string|null, 'reason' => string|null]
+     */
+    protected function computeOpenStatus(Ecospace $ecospace): array
+    {
+        $isOpenNow = null;
+        $openUntil = null;
+        $reason = null;
+
+        try {
+            $tz = config('app.timezone') ?: date_default_timezone_get();
+            $now = Carbon::now($tz);
+
+            // parse daysOpened
+            $allowedDays = range(0,6);
+            $daysText = trim(strtolower($ecospace->daysOpened ?? ''));
+            $matchedSpecificDate = null;
+            if ($daysText !== '') {
+                if (str_contains($daysText, 'every') || str_contains($daysText, 'daily')) {
+                    $allowedDays = range(0,6);
+                } elseif (str_contains($daysText, 'weekday')) {
+                    $allowedDays = [1,2,3,4,5];
+                } elseif (str_contains($daysText, 'weekend')) {
+                    $allowedDays = [0,6];
+                } else {
+                    // check for explicit month/day like "nov 15" or "november 15"
+                    if (preg_match('/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s*(\d{1,2})/i', $daysText, $m)) {
+                        $month = $m[1];
+                        $day = (int) $m[2];
+                        // assume current year
+                        $candidate = Carbon::createFromFormat('M j Y', ucfirst(strtolower($month)) . ' ' . $day . ' ' . $now->year, $tz);
+                        if ($candidate) {
+                            $matchedSpecificDate = $candidate->startOfDay();
+                        }
+                    }
+
+                    // parse day ranges or lists
+                    if (!$matchedSpecificDate) {
+                        $dayMap = [
+                            'sun' => 0, 'sunday' => 0,
+                            'mon' => 1, 'monday' => 1,
+                            'tue' => 2, 'tues' => 2, 'tuesday' => 2,
+                            'wed' => 3, 'wednesday' => 3,
+                            'thu' => 4, 'thursday' => 4, 'thur' => 4, 'thurs' => 4,
+                            'fri' => 5, 'friday' => 5,
+                            'sat' => 6, 'saturday' => 6,
+                        ];
+
+                        $txt = preg_replace('/\s+/', ' ', $daysText);
+                        if (preg_match('/(mon|tue|wed|thu|fri|sat|sun)[\w]*\s*[-to]+\s*(mon|tue|wed|thu|fri|sat|sun)/', $txt, $mm)) {
+                            $start = $mm[1]; $end = $mm[2];
+                            $s = $dayMap[$start] ?? null; $e = $dayMap[$end] ?? null;
+                            if ($s !== null && $e !== null) {
+                                $allowedDays = [];
+                                $i = $s;
+                                while (true) {
+                                    $allowedDays[] = $i;
+                                    if ($i === $e) break;
+                                    $i = ($i + 1) % 7;
+                                }
+                            }
+                        } else {
+                            $parts = preg_split('/[,;]|\s+/', $txt);
+                            $found = [];
+                            foreach ($parts as $p) {
+                                $p = trim($p);
+                                if ($p === '') continue;
+                                foreach ($dayMap as $k => $v) {
+                                    if (str_starts_with($p, $k)) { $found[] = $v; break; }
+                                }
+                            }
+                            if (!empty($found)) {
+                                $allowedDays = array_values(array_unique($found));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // if daysText included a specific date like Nov 15, check it
+            if ($matchedSpecificDate) {
+                if ($now->between($matchedSpecificDate, $matchedSpecificDate->copy()->endOfDay())) {
+                    $todayAllowed = true;
+                } else {
+                    $todayAllowed = false;
+                }
+            } else {
+                $todayAllowed = in_array($now->dayOfWeek, $allowedDays, true);
+            }
+
+            $oh = $ecospace->openingHours;
+            $ch = $ecospace->closingHours;
+
+            if ($todayAllowed) {
+                if ($oh && $ch) {
+                    // try parse times with seconds or without
+                    $formats = ['H:i:s', 'H:i'];
+                    $openTime = null; $closeTime = null;
+                    foreach ($formats as $f) {
+                        try {
+                            if (!$openTime) $openTime = Carbon::createFromFormat($f, $oh, $tz)->setDate($now->year, $now->month, $now->day);
+                        } catch (\Throwable $e) { /* ignore */ }
+                        try {
+                            if (!$closeTime) $closeTime = Carbon::createFromFormat($f, $ch, $tz)->setDate($now->year, $now->month, $now->day);
+                        } catch (\Throwable $e) { /* ignore */ }
+                    }
+
+                    if (!$openTime || !$closeTime) {
+                        $reason = 'Unable to parse opening/closing times';
+                        $isOpenNow = null;
+                    } else {
+                        if ($closeTime->lessThanOrEqualTo($openTime)) {
+                            $closeTime->addDay();
+                        }
+                        if ($now->between($openTime, $closeTime)) {
+                            $isOpenNow = true;
+                            $openUntil = $closeTime->format('g:i A');
+                        } else {
+                            $isOpenNow = false;
+                        }
+                    }
+                } else {
+                    $isOpenNow = true; // no specific hours, open for allowed day
+                }
+            } else {
+                $isOpenNow = false;
+            }
+        } catch (\Throwable $e) {
+            report($e);
+            $isOpenNow = null;
+            $reason = 'Error computing status';
+        }
+
+        return [
+            'isOpenNow' => $isOpenNow,
+            'openUntil' => $openUntil,
+            'reason' => $reason,
+            'openingHours' => $ecospace->openingHours,
+            'closingHours' => $ecospace->closingHours,
+            'daysOpened' => $ecospace->daysOpened,
+        ];
     }
 
     // Store a new ecospace (user-submitted)
@@ -121,6 +552,18 @@ class EcospaceController extends Controller
             }
         }
 
+        // Promote the user who created an ecospace to userTypeID = 3
+        try {
+            $user = auth()->user();
+            if ($user) {
+                $user->userTypeID = 3;
+                $user->save();
+            }
+        } catch (\Throwable $e) {
+            // Don't break ecospace creation if updating the user fails; log the error
+            report($e);
+        }
+
         return redirect()->route('dashboard')->with('success', 'Ecospace submitted successfully.');
     }
 
@@ -151,7 +594,10 @@ class EcospaceController extends Controller
             ->with(['user', 'images', 'priceTier', 'eventType'])
             ->paginate(5, ['*'], 'events_page');
 
-        return view('admin.index', compact('ecospaces', 'events'));
+        // Include users listing for admin index
+        $users = User::orderBy('name')->paginate(10, ['*'], 'users_page');
+
+        return view('admin.index', compact('ecospaces', 'events', 'users'));
     }
 
     public function archives()
@@ -167,7 +613,10 @@ class EcospaceController extends Controller
             ->with(['user', 'images', 'priceTier', 'eventType'])
             ->paginate(5, ['*'], 'events_page');
 
-        return view('admin.archives', compact('ecospaces', 'events'));
+        // Also include trashed users for admin archives (unarchive option)
+        $users = \App\Models\User::onlyTrashed()->orderBy('name')->paginate(10, ['*'], 'users_page');
+
+        return view('admin.archives', compact('ecospaces', 'events', 'users'));
     }
 
     public function approve($id)
@@ -184,6 +633,20 @@ class EcospaceController extends Controller
         $ecospace->update(['statusID' => 3]);
         $ecospace->delete(); // soft delete (sets deleted_at)
         return redirect()->back()->with('success', 'Ecospace declined and archived.');
+    }
+
+    /**
+     * Show a confirmation page (no JS) before soft-removing an ecospace.
+     */
+    public function confirmRemove($id)
+    {
+        $ecospace = Ecospace::findOrFail($id);
+        $title = 'Confirm Remove EcoSpace';
+        $message = 'Are you sure you want to remove the ecospace "' . $ecospace->ecospaceName . '"? This will archive the ecospace (soft-delete).';
+        $actionRoute = route('admin.ecospace.remove', $id);
+        $cancelUrl = url()->previous() ?: route('index.index');
+
+        return view('shared.confirm-delete', compact('title', 'message', 'actionRoute', 'cancelUrl'));
     }
 
     public function restore($id)
@@ -207,11 +670,38 @@ class EcospaceController extends Controller
                          ->with('success', 'Ecospace permanently deleted.');
     }
 
+    /**
+     * Show a confirmation page (no JS) before permanently deleting an ecospace.
+     */
+    public function confirmDelete($id)
+    {
+        $ecospace = Ecospace::withTrashed()->findOrFail($id);
+        $title = 'Confirm Permanent Delete';
+        $message = 'Are you sure you want to permanently delete the ecospace "' . $ecospace->ecospaceName . '"? This cannot be undone.';
+        $actionRoute = route('admin.ecospaces.delete', $id);
+        $cancelUrl = url()->previous() ?: route('archives.index');
+
+        return view('shared.confirm-delete', compact('title', 'message', 'actionRoute', 'cancelUrl'));
+    }
+
     public function edit($id)
     {
         $ecospace = Ecospace::with('images')->findOrFail($id);
         $pricetiers = PriceTier::all();
         return view('admin.edit', compact('ecospace', 'pricetiers'));
+    }
+
+    /**
+     * Owner-facing edit form. Only the owner (userID) may access.
+     */
+    public function editOwner($id)
+    {
+        $ecospace = Ecospace::with('images')->findOrFail($id);
+        if (!auth()->check() || auth()->id() != $ecospace->userID) {
+            abort(403);
+        }
+        $pricetiers = PriceTier::all();
+        return view('ecospaces.edit-ecospace', compact('ecospace', 'pricetiers'));
     }
 
     public function update(Request $request, $id)
@@ -276,5 +766,74 @@ class EcospaceController extends Controller
         }
 
         return redirect()->route('index.index')->with('success', 'Ecospace updated successfully.');
+    }
+
+    /**
+     * Owner-facing update. Similar to admin update but checks ownership and redirects to user's profile.
+     */
+    public function updateOwner(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'ecospaceName' => 'required|string|max:191',
+            'ecospaceAdd' => 'nullable|string|max:255',
+            'ecospaceDesc' => 'nullable|string|max:1000',
+            'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
+            'openingHours' => 'nullable|string|max:50',
+            'closingHours' => 'nullable|string|max:50',
+            'daysOpened' => 'nullable|string|max:255',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'images_to_remove' => 'nullable|array',
+            'images_to_remove.*' => 'integer|exists:tbl_esImages,esImageID',
+        ]);
+
+        $ecospace = Ecospace::findOrFail($id);
+        if (!auth()->check() || auth()->id() != $ecospace->userID) {
+            abort(403);
+        }
+
+        // Update basic fields
+        $ecospace->update([
+            'ecospaceName' => $request->ecospaceName,
+            'ecospaceAdd' => $request->ecospaceAdd,
+            'ecospaceDesc' => $request->ecospaceDesc,
+            'priceTierID' => $request->priceTierID,
+            'openingHours' => $request->openingHours,
+            'closingHours' => $request->closingHours,
+            'daysOpened' => $request->daysOpened,
+        ]);
+
+        // Remove selected images
+        if ($request->filled('images_to_remove')) {
+            foreach ($request->images_to_remove as $imgId) {
+                $img = Image::find($imgId);
+                if ($img && $img->ecospaceID == $ecospace->ecospaceID) {
+                    if ($img->path && Storage::disk('public')->exists($img->path)) {
+                        Storage::disk('public')->delete($img->path);
+                    }
+                    $img->delete();
+                }
+            }
+        }
+
+        // Add uploaded images
+        if ($request->hasFile('images')) {
+            $maxOrder = Image::where('ecospaceID', $ecospace->ecospaceID)->max('order');
+            if (!is_numeric($maxOrder)) $maxOrder = -1;
+            $index = 0;
+            foreach ($request->file('images') as $file) {
+                if (!$file->isValid()) continue;
+                $path = $file->store('ecospace_images', 'public');
+                Image::create([
+                    'ecospaceID' => $ecospace->ecospaceID,
+                    'path' => $path,
+                    'order' => $maxOrder + 1 + $index,
+                    'caption' => null,
+                ]);
+                $index++;
+            }
+        }
+
+        return redirect()->route('ecospaces.show', auth()->id())->with('success', 'Ecospace updated successfully.');
     }
 }

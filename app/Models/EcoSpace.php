@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Review;
+use App\Models\ProAndCon;
 
 class Ecospace extends Model
 {
@@ -64,5 +66,15 @@ class Ecospace extends Model
     {
         // Explicit foreign and local keys: tbl_esImages.ecospaceID -> ecospaces.ecospaceID
         return $this->hasMany(Image::class, 'ecospaceID', 'ecospaceID')->orderBy('order');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'ecospaceID', 'ecospaceID');
+    }
+
+    public function prosAndCons()
+    {
+        return $this->hasMany(ProAndCon::class, 'ecospaceID', 'ecospaceID')->orderByDesc('dateCreated');
     }
 }

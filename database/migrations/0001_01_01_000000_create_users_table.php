@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('userTypeID')->default('1'); // Add a role column with a default value
+            $table->string('userTypeID')->default('2'); // Add a role column with a default value
             $table->string('password');
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();

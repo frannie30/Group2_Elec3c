@@ -1,4 +1,5 @@
 <x-app-layout>
+    @php $hideNavbar = true; @endphp
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-pink-700 leading-tight">
             {{ __('Edit Recipe') }}
