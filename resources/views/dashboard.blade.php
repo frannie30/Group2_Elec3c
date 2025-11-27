@@ -1,28 +1,23 @@
 <x-app-layout>
 
-
+<!--p.s. Tinanggal ko na yung font import dito since I've set up the proper one sa tailwind.config.js -Arkin -->
     @push('styles')
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-            :root{
-                --brand-green: #4D9A51;
-                --brand-maroon: #642D45;
-                --brand-bg-light: #F5F4F1;
-                --brand-bg-dark: #ECECEC;
-            }
-            body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
-
             /* When toggled, show only the spaces card list and hide everything else inside the main container */
             #dashboard-main.cards-only > *:not(#spaces-section) { display: none !important; }
         </style>
     @endpush
 
-    <main id="dashboard-main" class="bg-[color:var(--brand-bg-light)]">
+    <main id="dashboard-main" class="bg-seiun-sky">
         <!-- Hero -->
-        <section id="hero-section" class="bg-white container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <section id="hero-section" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">Discover Makati's<br><span class="text-[color:var(--brand-green)]">Green Spaces</span></h1>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
+                        <span class="text-dark-green">Discover Makati's</span>
+                        <br>
+                        <span class="text-light-green">Green Spaces</span>
+                    </h1>
                     <p class="text-lg text-gray-600 mb-8 max-w-lg">Find parks, gardens, and eco-friendly spaces near you. Join events, share reviews, and help build sustainable communities.</p>
 
                     <form method="GET" action="{{ route('dashboard') }}" class="flex items-center bg-white shadow-md rounded-lg overflow-hidden max-w-xl">
@@ -46,11 +41,11 @@
     </main>
 
     <!-- Spaces Near Me -->
-    <section id="spaces-section" class="py-16 md:py-24 bg-[color:var(--brand-bg-dark)]">
+    <section id="spaces-section" class="py-16 md:py-24 bg-cinderella-gray">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between items-center mb-8">
-                            <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--brand-maroon)]">Spaces Near Me</h2>
-                            <a href="{{ route('ecospaces.index') }}" class="text-[color:var(--brand-green)] font-semibold hover:underline text-lg">View all &gt;</a>
+                            <h2 class="text-3xl md:text-4xl font-extrabold text-magenta-secondary">Spaces Near Me</h2>
+                            <a href="{{ route('ecospaces.index') }}" class="text-magenta-secondary font-normal hover:underline text-lg">View all &gt;</a>
                         </div>
 
                 <div id="spaces-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -111,7 +106,7 @@
                             </div>
                         @endforeach
                     @else
-                        <div class="col-span-full text-center text-gray-600">No ecospaces found.</div>
+                        <div class="col-span-full text-center text-magenta-secondary">No ecospaces found.</div>
                     @endif
                 </div>
 

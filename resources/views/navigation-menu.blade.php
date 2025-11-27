@@ -6,8 +6,8 @@
             <!-- Left: Logo -->
             <div class="flex items-center space-x-4">
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-2">
-                    <x-application-mark class="block h-10 w-auto text-green-600" />
-                    <span class="text-2xl font-bold text-gray-900">EcoSpaces</span>
+                    <x-application-mark class="block h-10 w-auto text-dark-green" />
+                    <span class="text-2xl font-bold"><span class="text-dark-green">Eco</span><span class="text-pink-logo">Spaces</span></span>
                 </a>
             </div>
 
