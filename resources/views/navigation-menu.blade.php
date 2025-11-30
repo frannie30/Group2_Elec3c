@@ -1,5 +1,5 @@
 <div>
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-200">
+<nav x-data="{ open: false }" class="sticky top-0 z-50 bg-white border-b border-gray-200 transition-all duration-300">
     <!-- Primary Navigation Menu (EcoSpaces style) -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
@@ -27,17 +27,17 @@
             <div class="hidden md:flex items-center space-x-6">
                 <div class="hidden md:flex items-center space-x-6">
                     @if(request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index'))
-                        <x-nav-link href="{{ route('index.index') }}" :active="request()->routeIs('index.index')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Admin Dashboard') }}</x-nav-link>
+                        <x-nav-link href="{{ route('index.index') }}" :active="request()->routeIs('index.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Admin Dashboard') }}</x-nav-link>
                     @else
-                        <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Dashboard') }}</x-nav-link>
+                        <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Dashboard') }}</x-nav-link>
                         @if(!(Auth::user() && (Auth::user()->userTypeID === 1 || Auth::user()->userTypeID === 3)))
-                            <x-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Submit an EcoSpace') }}</x-nav-link>
+                            <x-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Submit an EcoSpace') }}</x-nav-link>
                         @endif
                         @if(!(Auth::user() && Auth::user()->userTypeID === 1))
-                            <x-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Submit an Event') }}</x-nav-link>
+                            <x-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Submit an Event') }}</x-nav-link>
                         @endif
-                        <x-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Events') }}</x-nav-link>
-                        <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')" class="text-gray-600 hover:text-green-600 font-medium">{{ __('Users') }}</x-nav-link>
+                        <x-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Events') }}</x-nav-link>
+                        <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Users') }}</x-nav-link>
                     @endif
                 </div>
 
@@ -187,9 +187,9 @@
         @else
             <div class="pt-4 pb-1 px-4 border-t">
                 <div class="flex items-center gap-3">
-                    <a href="#login" class="text-sm text-gray-600 hover:underline">{{ __('Log in') }}</a>
+                    <a href="#login" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Log in') }}</a>
                     @if (Route::has('register'))
-                        <a href="#register" class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-md">{{ __('Register') }}</a>
+                        <a href="#register" class="text-white bg-magenta-secondary px-3 py-1 rounded-md hover:opacity-90 transition-opacity">{{ __('Register') }}</a>
                     @endif
                 </div>
             </div>

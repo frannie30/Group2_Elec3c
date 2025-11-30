@@ -18,7 +18,7 @@
                         <br>
                         <span class="text-light-green">Green Spaces</span>
                     </h1>
-                    <p class="text-lg text-gray-600 mb-8 max-w-lg">Find parks, gardens, and eco-friendly spaces near you. Join events, share reviews, and help build sustainable communities.</p>
+                    <p class="text-2xl text-dark-green font-extralight mb-8 max-w-lg">Find parks, gardens, and eco-friendly spaces near you. Join events, share reviews, and help build sustainable communities.</p>
 
                     <form method="GET" action="{{ route('dashboard') }}" class="flex items-center bg-white shadow-md rounded-lg overflow-hidden max-w-xl">
                         <span class="pl-4 text-gray-400">
@@ -34,7 +34,11 @@
                 </div>
 
                 <div class="hidden md:block">
-                    <img src="https://placehold.co/600x450/96B8A0/FFFFFF?text=Park+View" alt="Park view" class="rounded-lg shadow-lg w-full h-auto object-cover" style="aspect-ratio:4/3;" />
+                    <img id="park-view-image" 
+                        src="{{ asset('images/EcoSpace5.jpg') }}" 
+                        alt="Park view" 
+                        class="rounded-lg shadow-lg w-full h-auto object-cover transition-opacity duration-1000" 
+                        style="aspect-ratio:4/3;" />
                 </div>
             </div>
         </section>
@@ -114,6 +118,7 @@
             </div>
         </section>
     </main>
+
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function(){
@@ -165,3 +170,59 @@
         </script>
     @endpush
 </x-app-layout>
+
+<!-- code for image display -->
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageElement = document.getElementById('park-view-image');
+
+            // 1. Define the BASE ASSET PATH ONCE (Blade executes here)
+            const assetBasePath = '{{ asset('images') }}'; 
+            
+            // 2. List of your images
+            const imageFiles = [
+                'EcoSpace1.jpg',
+                'EcoSpace2.jpg',
+                'EcoSpace3.jpg',
+                'EcoSpace4.jpg',
+                'EcoSpace5.jpg'
+            ];
+            
+            let currentImageIndex = 0;
+            const cycleInterval = 4000; // Cycle every 4 seconds (4000 milliseconds)
+            const fadeDuration = 1000; // Matches the CSS transition
+
+            function cycleImage() {
+                // 3. Fade out
+                imageElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Update index to the next image
+                    // Start at index 0 on the first run, then cycle through 1, 2, 3, 4, 0...
+                    currentImageIndex = (currentImageIndex + 1) % imageFiles.length;
+                    
+                    // 4. Construct the path using the pre-defined base path
+                    const newPath = assetBasePath + '/' + imageFiles[currentImageIndex];
+                    imageElement.src = newPath;
+                    
+                    // 5. Fade in after source update
+                    imageElement.style.opacity = '1';
+
+                }, fadeDuration); // Wait for the fade-out duration before changing source
+
+            }
+            
+            // To make the slideshow start with the second image after the first interval:
+            // Set the initial image index to -1 so the first cycleImage call goes to index 0
+            currentImageIndex = -1; 
+            
+            // Call immediately to load the first image (EcoSpace1) then start the interval for cycling
+            // We set the initial image in the HTML to EcoSpace5.jpg, so let's start the cycle immediately.
+            cycleImage();
+
+            // Start the cycling process using the defined interval
+            setInterval(cycleImage, cycleInterval);
+        });
+    </script>
+@endpush
