@@ -7,7 +7,7 @@
         .avatar-placeholder-icon { width: 120px; height: 120px; border-radius: 50%; background-color: #e5e7eb; }
     </style>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 min-h-screen">
         @php
             // Attending events paginator (6 per page)
             $attendingPage = (int) request()->get('attending_page', 1);

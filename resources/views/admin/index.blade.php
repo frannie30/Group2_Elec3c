@@ -9,10 +9,10 @@
 
     <style>
         :root{
-            --brand-green: #4D9A51;
-            --brand-maroon: #642D45;
-            --brand-bg-admin-main: #F7FCF9;
-            --brand-bg-sidebar: #FEFBFB;
+            --brand-green: #F89EA4; /* admin primary accent now pink */
+            --brand-maroon: #C33F64; /* stronger pink/magenta */
+            --brand-bg-admin-main: #EAF7EF; /* soft pink page background */
+            --brand-bg-sidebar: #FCECEF; /* slightly different pale pink for sidebar */
         }
         .font-inter{ font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
         .text-brand-green{ color: var(--brand-green); }
@@ -26,15 +26,15 @@
         <aside class="w-64 bg-brand-bg-sidebar flex flex-col p-6 border-r border-gray-100 shadow-sm">
             <!-- Logo -->
             <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 mb-8">
-                <svg class="h-8 w-8 text-brand-green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <svg class="h-8 w-8 text-brand-maroon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12.965 2.214a1 1 0 0 0-1.93 0l-1.33 4.116a1 1 0 0 1-.956.69h-4.33a1 1 0 0 0-.97 1.258l2.25 6.953a1 1 0 0 1-.162.903l-3.32 4.103a1 1 0 0 0 .78 1.637h5.45a1 1 0 0 1 .957-.69l1.33-4.116a1 1 0 0 0-.797-1.37l-3.064-.998 1.41-4.357h2.29a1 1 0 0 1 .956.69l1.33 4.116a1 1 0 0 0 .957.69h5.45a1 1 0 0 0 .78-1.637l-3.32-4.103a1 1 0 0 1-.162-.903l2.25-6.953a1 1 0 0 0-.97-1.258h-4.33a1 1 0 0 1-.956-.69L12.965 2.214z" />
                 </svg>
-                <span class="text-2xl font-bold text-gray-900">EcoSpaces</span>
+                <span class="text-2xl font-bold text-green-600">EcoSpaces</span>
             </a>
 
             <!-- Welcome -->
             <div class="mb-8">
-                <h2 class="text-lg font-bold text-gray-900">Admin Dashboard</h2>
+                <h2 class="text-lg font-bold text-brand-maroon">Admin Dashboard</h2>
                 <p class="text-sm text-gray-500">Hi, <span class="font-semibold">{{ Auth::user()->name }}</span></p>
             </div>
 
@@ -42,7 +42,7 @@
             <nav class="flex-grow">
                 <ul class="space-y-2">
                     <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-gray-700 hover:text-brand-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <rect x="3" y="3" width="7" height="7"></rect>
                                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -53,7 +53,7 @@
                         </a>
                     </li>
                     <li>
-                        <button id="btn-ecospaces" class="flex items-center justify-between w-full text-gray-700 hover:text-brand-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button id="btn-ecospaces" class="flex items-center justify-between w-full text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
                             <span class="flex items-center space-x-3">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -64,7 +64,7 @@
                         </button>
                     </li>
                     <li>
-                        <button id="btn-events" class="flex items-center justify-between w-full text-brand-green font-bold p-2 rounded-lg bg-green-50 transition-colors">
+                        <button id="btn-events" class="flex items-center justify-between w-full text-brand-maroon font-bold p-2 rounded-lg bg-pink-50 transition-colors">
                             <span class="flex items-center space-x-3">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -77,7 +77,7 @@
                         </button>
                     </li>
                     <li>
-                        <button id="btn-users" class="flex items-center justify-between w-full text-gray-700 hover:text-brand-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button id="btn-users" class="flex items-center justify-between w-full text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
                             <span class="flex items-center space-x-3">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"></path>
@@ -113,7 +113,7 @@
 
                 {{-- Session messages (kept as before) --}}
                 @if (session('success'))
-                <div class="mb-4 px-4 py-3 rounded-lg bg-green-100 border border-green-300 text-green-800 font-semibold shadow">
+                <div class="mb-4 px-4 py-3 rounded-lg bg-pink-100 border border-pink-300 text-pink-800 font-semibold shadow">
                     {{ session('success') }}
                 </div>
                 @endif
@@ -126,7 +126,7 @@
 
                 <!-- Header -->
                 <div class="mb-6 flex items-center justify-between">
-                    <h1 class="text-3xl font-bold text-gray-900">Manage Content</h1>
+                    <h1 id="page-title" class="text-3xl font-bold text-gray-900">Manage Content</h1>
                     <div class="flex gap-3">
                         <a href="{{ route('create.index') }}" class="bg-brand-maroon text-white px-4 py-2 rounded-lg font-semibold shadow" style="background-color: var(--brand-maroon);">+ Add New EcoSpace</a>
                         <a href="{{ route('archives.index') }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold shadow">View Archive</a>
@@ -214,7 +214,7 @@
                                     </td>
                                     <td class="px-6 py-4 border-b align-top">
                                         <div class="flex flex-col items-stretch gap-3">
-                                            <a href="{{ route('edit.index', $ecospace->ecospaceID) }}" class="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-green-700 transition focus:outline-none">
+                                            <a href="{{ route('edit.index', $ecospace->ecospaceID) }}" class="w-full flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-pink-700 transition focus:outline-none">
                                                 Edit
                                             </a>
                                             <a href="{{ route('admin.ecospace.confirm-remove', $ecospace->ecospaceID) }}" class="w-full inline-flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold shadow hover:bg-red-200 transition focus:outline-none">Remove</a>
@@ -385,7 +385,8 @@
                         if (count) count.textContent = (idx + 1) + '/' + images.length;
                     }
 
-                    function showSection(name, pushState = true) {
+                        function showSection(name, pushState = true) {
+                            const pageTitle = document.getElementById('page-title');
                         const eco = document.getElementById('section-ecospaces');
                         const evt = document.getElementById('section-events');
                         const users = document.getElementById('section-users');
@@ -393,13 +394,16 @@
                         const btnEvt = document.getElementById('btn-events');
                         const btnUsers = document.getElementById('btn-users');
                         eco.classList.add('hidden'); evt.classList.add('hidden'); users.classList.add('hidden');
-                        btnEco.classList.remove('bg-green-50'); btnEvt.classList.remove('bg-green-50'); btnUsers.classList.remove('bg-green-50');
+                            btnEco.classList.remove('bg-pink-50'); btnEvt.classList.remove('bg-pink-50'); btnUsers.classList.remove('bg-pink-50');
                         if (name === 'events') {
-                            evt.classList.remove('hidden'); btnEvt.classList.add('bg-green-50');
+                            evt.classList.remove('hidden'); btnEvt.classList.add('bg-pink-50');
+                            if (pageTitle) pageTitle.textContent = 'Manage Events';
                         } else if (name === 'users') {
-                            users.classList.remove('hidden'); btnUsers.classList.add('bg-green-50');
+                            users.classList.remove('hidden'); btnUsers.classList.add('bg-pink-50');
+                            if (pageTitle) pageTitle.textContent = 'Users';
                         } else {
-                            eco.classList.remove('hidden'); btnEco.classList.add('bg-green-50');
+                            eco.classList.remove('hidden'); btnEco.classList.add('bg-pink-50');
+                            if (pageTitle) pageTitle.textContent = 'Manage Content';
                         }
                         if (pushState) {
                             const url = new URL(window.location);

@@ -29,7 +29,7 @@
 
                 <div class="mb-6">
                     @if(count($imgs))
-                        <div id="detail-carousel" class="relative">
+                        <div id="detail-carousel" class="relative" data-images='@json($imgs)' data-index="0">
                             <img id="detail-img" src="{{ $imgs[0] }}" alt="{{ $event->eventName }}" class="w-full h-72 lg:h-96 object-cover rounded-lg" />
                             <button onclick="detailPrev()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">‹</button>
                             <button onclick="detailNext()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">›</button>
@@ -122,18 +122,27 @@
 
         {{-- carousel & attendance scripts --}}
         <script>
-            const imgs = @json($imgs);
-            let idx = 0;
-            function detailNext() {
-                if (!imgs.length) return;
-                idx = (idx + 1) % imgs.length;
-                document.getElementById('detail-img').src = imgs[idx];
-            }
-            function detailPrev() {
-                if (!imgs.length) return;
-                idx = (idx - 1 + imgs.length) % imgs.length;
-                document.getElementById('detail-img').src = imgs[idx];
-            }
+            (function(){
+                const container = document.getElementById('detail-carousel');
+                const imgs = container ? JSON.parse(container.getAttribute('data-images') || '[]') : [];
+                let idx = parseInt(container?.getAttribute('data-index') || '0', 10) || 0;
+
+                window.detailNext = function() {
+                    if (!imgs.length) return;
+                    idx = (idx + 1) % imgs.length;
+                    if (container) container.setAttribute('data-index', idx);
+                    const el = document.getElementById('detail-img');
+                    if (el) el.src = imgs[idx];
+                }
+
+                window.detailPrev = function() {
+                    if (!imgs.length) return;
+                    idx = (idx - 1 + imgs.length) % imgs.length;
+                    if (container) container.setAttribute('data-index', idx);
+                    const el = document.getElementById('detail-img');
+                    if (el) el.src = imgs[idx];
+                }
+            })();
 
             // Attendance handled server-side via standard POST form; no JS required here.
         </script>

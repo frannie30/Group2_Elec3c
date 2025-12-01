@@ -360,7 +360,9 @@ class EventController extends Controller
     {
         $search = $request->input('search');
 
+        // Only show approved events (statusID = 2)
         $query = Event::with(['images', 'priceTier', 'eventType', 'user', 'status'])
+            ->where('statusID', 2)
             ->withCount('attendees')
             ->orderBy('eventDate', 'desc');
 
@@ -381,7 +383,9 @@ class EventController extends Controller
     {
         $search = $request->input('search');
 
+        // Only show approved events (statusID = 2)
         $query = Event::with(['images', 'priceTier', 'eventType', 'user', 'status'])
+            ->where('statusID', 2)
             ->withCount('attendees')
             ->orderBy('eventDate', 'desc');
 

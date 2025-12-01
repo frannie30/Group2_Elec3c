@@ -1,7 +1,7 @@
 <x-app-layout>
 
 
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 min-h-screen">
         <div class="flex justify-start items-center space-x-4 mb-8">
             <div class="relative">
                 <button class="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50">
