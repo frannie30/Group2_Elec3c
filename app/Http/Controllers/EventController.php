@@ -33,7 +33,7 @@ class EventController extends Controller
         $event = Event::findOrFail($id);
         $event->update(['statusID' => 2]);
 
-        return redirect()->back()->with('success', 'Event approved!');
+        return redirect()->route('admin.events')->with('success', 'Event approved successfully.');
     }
 
     /**
@@ -45,7 +45,7 @@ class EventController extends Controller
         $event->update(['statusID' => 3]);
         $event->delete(); // soft delete
 
-        return redirect()->back()->with('success', 'Event declined and archived.');
+        return redirect()->route('admin.events')->with('success', 'Event archived successfully.');
     }
 
     /**
@@ -97,7 +97,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'eventName' => 'required|string|max:255',
             'eventTypeID' => 'nullable|integer|exists:tbl_eventtypes,eventTypeID',
-            'eventDate' => 'required|date',
+            'eventDate' => 'required|date|after_or_equal:now',
             'eventAdd' => 'nullable|string|max:255',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             'eventDesc' => 'nullable|string',
@@ -106,6 +106,16 @@ class EventController extends Controller
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_eventImages,eventImageID',
         ]);
+
+        // Server-side safety check: ensure datetime is not in the past
+        try {
+            $eventDate = \Illuminate\Support\Carbon::parse($request->input('eventDate'));
+            if ($eventDate->lt(now())) {
+                return back()->withInput()->withErrors(['eventDate' => 'Event date and time must be now or in the future.']);
+            }
+        } catch (\Throwable $e) {
+            return back()->withInput()->withErrors(['eventDate' => 'Invalid event date and time.']);
+        }
 
         $event = Event::findOrFail($id);
 
@@ -149,7 +159,8 @@ class EventController extends Controller
             }
         }
 
-        return redirect()->route('index.index')->with('success', 'Event updated successfully.');
+        // After admin edit, redirect back to the admin events listing
+        return redirect()->route('admin.events')->with('success', 'Event updated successfully.');
     }
 
     /**
@@ -160,7 +171,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'eventName' => 'required|string|max:255',
             'eventTypeID' => 'nullable|integer|exists:tbl_eventtypes,eventTypeID',
-            'eventDate' => 'required|date',
+            'eventDate' => 'required|date|after_or_equal:now',
             'eventAdd' => 'nullable|string|max:255',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             'eventDesc' => 'nullable|string',
@@ -169,6 +180,16 @@ class EventController extends Controller
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_eventImages,eventImageID',
         ]);
+
+        // Server-side safety check: ensure datetime is not in the past
+        try {
+            $eventDate = \Illuminate\Support\Carbon::parse($request->input('eventDate'));
+            if ($eventDate->lt(now())) {
+                return back()->withInput()->withErrors(['eventDate' => 'Event date and time must be now or in the future.']);
+            }
+        } catch (\Throwable $e) {
+            return back()->withInput()->withErrors(['eventDate' => 'Invalid event date and time.']);
+        }
 
         $event = Event::findOrFail($id);
         if (!auth()->check() || auth()->id() != $event->userID) {
@@ -217,7 +238,8 @@ class EventController extends Controller
             }
         }
 
-        return redirect()->route('events.show', auth()->id())->with('success', 'Event updated successfully.');
+        // Owner-facing update still redirects to the owner's events listing page
+        return redirect()->route('my.events')->with('success', 'Event updated successfully.');
     }
 
     /**
@@ -229,7 +251,7 @@ class EventController extends Controller
         $event->restore();
         $event->update(['statusID' => 2]);
 
-        return redirect()->route('archives.index')->with('success', 'Event restored and approved successfully!');
+        return redirect()->route('admin.events')->with('success', 'Event restored successfully.');
     }
 
     /**
@@ -247,7 +269,7 @@ class EventController extends Controller
         }
         $event->forceDelete();
 
-        return redirect()->route('archives.index')->with('success', 'Event permanently deleted.');
+        return redirect()->route('admin.events.archives')->with('success', 'Event permanently deleted.');
     }
 
     /**
@@ -270,14 +292,24 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'eventName' => 'required|string|max:255',
+            'eventName' => 'required|string|min:5|max:255',
             'eventTypeID' => 'required|integer|exists:tbl_eventtypes,eventTypeID',
-            'eventDate' => 'required|date',
-            'eventAdd' => 'required|string|max:255',
+            'eventDate' => 'required|date|after_or_equal:now',
+            'eventAdd' => 'required|string|min:5|max:255',
             'priceTierID' => 'required|integer|exists:tbl_pricetiers,priceTierID',
-            'eventDesc' => 'nullable|string',
+            'eventDesc' => 'nullable|string|min:5',
             'images.*' => 'image|max:5120', // 5MB per image
         ]);
+
+        // Server-side safety check: ensure datetime is not in the past
+        try {
+            $eventDate = \Illuminate\Support\Carbon::parse($request->input('eventDate'));
+            if ($eventDate->lt(now())) {
+                return back()->withInput()->withErrors(['eventDate' => 'Event date and time must be now or in the future.']);
+            }
+        } catch (\Throwable $e) {
+            return back()->withInput()->withErrors(['eventDate' => 'Invalid event date and time.']);
+        }
 
         $user = Auth::user();
 
@@ -310,7 +342,7 @@ class EventController extends Controller
             }
         }
 
-        return redirect()->route('dashboard')->with('success', 'Event submitted successfully.');
+        return redirect()->route('dashboard')->with('success', 'Event created successfully.');
     }
 
     /**
@@ -354,6 +386,38 @@ class EventController extends Controller
     }
 
     /**
+     * Show authenticated user's events (owners and regular users).
+     */
+    public function myEvents(Request $request)
+    {
+        if (! auth()->check()) {
+            return redirect()->route('dashboard')->with('error', 'Please log in to view your events.');
+        }
+
+        $user = auth()->user();
+
+        // Only allow normal users (2) and owners (3) to view their own events list here.
+        if (! in_array((int) $user->userTypeID, [2, 3], true)) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $search = $request->input('search');
+
+        $query = Event::where('userID', $user->id)
+            ->with(['images', 'priceTier', 'eventType', 'status'])
+            ->withCount('attendees')
+            ->orderByDesc('eventDate');
+
+        if (! empty($search)) {
+            $query->where('eventName', 'like', "%{$search}%");
+        }
+
+        $events = $query->paginate(12)->appends(['search' => $search]);
+
+        return view('events.my_events', compact('events'));
+    }
+
+    /**
      * Show a paginated list of events.
      */
     public function index(Request $request)
@@ -381,13 +445,23 @@ class EventController extends Controller
      */
     public function all(Request $request)
     {
-        $search = $request->input('search');
+        // If the user is not authenticated and the request expects JSON (AJAX/fetch),
+        // return a JSON response signalling that login is required so the frontend
+        // can show the login modal without redirecting the browser.
+        if (! auth()->check() && $request->expectsJson()) {
+            return response()->json(['requires_login' => true], 401);
+        }
 
-        // Only show approved events (statusID = 2)
+        // Moveable sorting/filtering logic: apply when viewing the full events listing
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'date_desc');
+        $eventType = $request->input('event_type');
+        $priceTier = $request->input('price_tier');
+        $hasImages = $request->input('has_images', 'all');
+
         $query = Event::with(['images', 'priceTier', 'eventType', 'user', 'status'])
             ->where('statusID', 2)
-            ->withCount('attendees')
-            ->orderBy('eventDate', 'desc');
+            ->withCount('attendees');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -403,8 +477,83 @@ class EventController extends Controller
             });
         }
 
-        $events = $query->paginate(12)->appends(['search' => $search]);
+        // filters
+        if (!empty($eventType)) {
+            $query->where('eventTypeID', $eventType);
+        }
+        if (!empty($priceTier)) {
+            $query->where('priceTierID', $priceTier);
+        }
+        if ($hasImages === 'has') {
+            $query->has('images');
+        } elseif ($hasImages === 'none') {
+            $query->doesntHave('images');
+        }
 
-        return view('events.all', compact('events'));
+        // sorting
+        switch ($sort) {
+            case 'date_asc':
+                $query->orderBy('eventDate', 'asc');
+                break;
+            case 'date_desc':
+                $query->orderBy('eventDate', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('eventName', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('eventName', 'desc');
+                break;
+            case 'most_attendees':
+                $query->orderBy('attendees_count', 'desc');
+                break;
+            case 'least_attendees':
+                $query->orderBy('attendees_count', 'asc');
+                break;
+            default:
+                $query->orderBy('eventDate', 'desc');
+                break;
+        }
+
+        $events = $query->paginate(12)->withQueryString();
+
+        $eventTypes = \App\Models\EventType::orderBy('eventTypeName')->get();
+        $priceTiers = \App\Models\PriceTier::orderBy('pricetier')->get();
+
+        return view('events.all', compact('events', 'search', 'sort', 'eventType', 'priceTier', 'hasImages', 'eventTypes', 'priceTiers'));
+    }
+
+    /**
+     * Admin preview: standalone events admin page (for UI preview)
+     */
+    public function adminEvents()
+    {
+        $events = Event::orderByDesc('eventID')->paginate(5);
+        return view('admin.events', compact('events'));
+    }
+
+    /**
+     * Admin-facing: show pending events only (create page split)
+     */
+    public function adminEventsCreate()
+    {
+        $events = Event::where('statusID', 1)
+            ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->paginate(5, ['*'], 'events_page');
+
+        return view('admin.events_create', compact('events'));
+    }
+
+    /**
+     * Admin-facing: show archived events only (archives split)
+     */
+    public function adminEventsArchives()
+    {
+        $events = Event::onlyTrashed()
+            ->where('statusID', 3)
+            ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->paginate(5, ['*'], 'events_page');
+
+        return view('admin.events_archives', compact('events'));
     }
 }

@@ -23,7 +23,7 @@ class BookmarkController extends Controller
 
         if ($bookmark) {
             $bookmark->delete();
-            return Redirect::back()->with('success', 'Ecospace removed from your bookmarks.');
+            return Redirect::back()->with('success', 'Ecospace removed from bookmarks successfully.');
         }
 
         EsBookmark::create([
@@ -32,7 +32,7 @@ class BookmarkController extends Controller
             'dateCreated' => now(),
         ]);
 
-        return Redirect::back()->with('success', 'Ecospace added to your bookmarks.');
+        return Redirect::back()->with('success', 'Ecospace added to bookmarks successfully.');
     }
 
     public function toggleEvent(Request $request, $id)
@@ -48,7 +48,7 @@ class BookmarkController extends Controller
 
         if ($bookmark) {
             $bookmark->delete();
-            return Redirect::back()->with('success', 'Event removed from your bookmarks.');
+            return Redirect::back()->with('success', 'Event removed from bookmarks successfully.');
         }
 
         EvBookmark::create([
@@ -57,6 +57,6 @@ class BookmarkController extends Controller
             'dateCreated' => now(),
         ]);
 
-        return Redirect::back()->with('success', 'Event added to your bookmarks.');
+        return Redirect::back()->with('success', 'Event added to bookmarks successfully.');
     }
 }

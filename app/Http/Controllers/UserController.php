@@ -139,16 +139,68 @@ class UserController extends Controller
      */
     public function index(HttpRequest $request)
     {
-        $search = $request->input('search');
+        // If the user is not authenticated and the request expects JSON (AJAX/fetch),
+        // return a JSON response signalling that login is required so the frontend
+        // can show the login modal without redirecting the browser.
+        if (! auth()->check() && $request->expectsJson()) {
+            return response()->json(['requires_login' => true], 401);
+        }
 
-        $users = User::withCount('ecospaces')
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'name_asc');
+        // filter: all | has | none
+        $hasEcospaces = $request->input('has_ecospaces', 'all');
+
+        $query = User::withCount('ecospaces')
             ->when($search, function ($q, $s) {
                 $q->where('name', 'like', "%{$s}%")
                   ->orWhere('email', 'like', "%{$s}%");
             })
-            ->paginate(12);
+            ->when($hasEcospaces === 'has', function ($q) {
+                $q->has('ecospaces');
+            })
+            ->when($hasEcospaces === 'none', function ($q) {
+                $q->doesntHave('ecospaces');
+            });
 
-        return view('users.index', compact('users', 'search'));
+        // apply sorting
+        switch ($sort) {
+            case 'name_desc':
+                $query = $query->orderBy('name', 'desc');
+                break;
+            case 'newest':
+                $query = $query->orderBy('created_at', 'desc');
+                break;
+            case 'oldest':
+                $query = $query->orderBy('created_at', 'asc');
+                break;
+            case 'most_ecospaces':
+                $query = $query->orderBy('ecospaces_count', 'desc');
+                break;
+            case 'least_ecospaces':
+                $query = $query->orderBy('ecospaces_count', 'asc');
+                break;
+            case 'name_asc':
+            default:
+                $query = $query->orderBy('name', 'asc');
+                break;
+        }
+
+        $users = $query->paginate(12)->withQueryString();
+
+        return view('users.index', compact('users', 'search', 'sort', 'hasEcospaces'));
+    }
+
+    /**
+     * Admin: display current (non-archived) users in a table for admin management.
+     */
+    public function adminIndex(HttpRequest $request)
+    {
+        $users = User::with('userType')
+            ->orderBy('name')
+            ->paginate(5);
+
+        return view('admin.accounts', compact('users'));
     }
 
     /**
@@ -158,17 +210,17 @@ class UserController extends Controller
     {
         $user = User::withTrashed()->find($id);
         if (!$user) {
-            return redirect()->back()->with('error', 'User not found.');
+            return redirect()->route('admin.users')->with('error', 'User not found.');
         }
 
         // Prevent archiving yourself
         if (auth()->check() && auth()->id() == $user->id) {
-            return redirect()->back()->with('error', 'You cannot archive your own account.');
+            return redirect()->route('admin.users')->with('error', 'You cannot archive your own account.');
         }
 
         // Prevent archiving other admins
         if (isset($user->userTypeID) && (int)$user->userTypeID === 1) {
-            return redirect()->back()->with('error', 'Cannot archive an admin account.');
+            return redirect()->route('admin.users')->with('error', 'Cannot archive an admin account.');
         }
 
         try {
@@ -194,11 +246,11 @@ class UserController extends Controller
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'User account archived successfully. Related ecospaces and events were archived.');
+            return redirect()->route('admin.users')->with('success', 'User account archived successfully. Related EcoSpaces and events were archived.');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return redirect()->back()->with('error', 'Failed to archive user account.');
+            return redirect()->route('admin.users')->with('error', 'Failed to archive user account.');
         }
     }
 
@@ -209,7 +261,7 @@ class UserController extends Controller
     {
         $user = User::withTrashed()->find($id);
         if (!$user) {
-            return redirect()->back()->with('error', 'User not found.');
+            return redirect()->route('admin.users')->with('error', 'User not found.');
         }
 
         try {
@@ -234,11 +286,20 @@ class UserController extends Controller
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'User account restored successfully. Related ecospaces and events were restored.');
+            return redirect()->route('admin.users')->with('success', 'User account restored successfully. Related EcoSpaces and events were restored.');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return redirect()->back()->with('error', 'Failed to restore user account.');
+            return redirect()->route('admin.users')->with('error', 'Failed to restore user account.');
         }
+    }
+
+    /**
+     * Display a paginated list of archived (soft-deleted) users for admin.
+     */
+    public function archives(HttpRequest $request)
+    {
+        $users = User::onlyTrashed()->with('userType')->paginate(5);
+        return view('admin.users_archives', compact('users'));
     }
 }

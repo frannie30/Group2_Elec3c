@@ -20,16 +20,20 @@
                     </h1>
                     <p class="text-2xl text-dark-green font-extralight mb-8 max-w-lg">Find parks, gardens, and eco-friendly spaces near you. Join events, share reviews, and help build sustainable communities.</p>
 
-                    <form method="GET" action="{{ route('dashboard') }}" class="flex items-center bg-white shadow-md rounded-lg overflow-hidden max-w-xl">
-                        <span class="pl-4 text-gray-400">
+                    <div class="max-w-xl bg-white rounded-lg p-4">
+                        <div class="border-2 border-magenta-secondary rounded-lg p-2">
+                            <form method="GET" action="{{ route('dashboard') }}" class="flex items-center bg-white shadow-md rounded-lg overflow-hidden w-full">
+                            <span class="pl-4 text-gray-400">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input id="search" name="search" type="search" placeholder="Search parks, gardens, events..." value="{{ $search ?? '' }}" class="flex-grow p-4 border-none focus:ring-0 text-gray-700 placeholder-gray-500" />
-                        <button type="submit" class="bg-[color:var(--brand-maroon)] text-white px-6 py-4 font-semibold hover:opacity-95 transition-colors">Search</button>
-                    </form>
+                            <input id="search" name="search" type="search" placeholder="Search parks, gardens, events..." value="{{ $search ?? '' }}" class="flex-grow p-4 border-none focus:ring-0 text-gray-700 placeholder-gray-500" />
+                            <button type="submit" class="bg-magenta-secondary text-white px-6 py-4 font-semibold hover:opacity-95 transition-colors">Search</button>
+                            </form>
+                        </div>
+                    </div>
                     <p class="text-gray-500 text-sm mt-4">@auth <a href="{{ route('users.show', Auth::user()->id) }}" class="font-medium hover:underline">View your profile</a> @else <a href="#login" class="font-medium hover:underline">Log in</a> to see saved listings @endauth</p>
                 </div>
 

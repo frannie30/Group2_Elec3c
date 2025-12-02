@@ -27,17 +27,37 @@
             <div class="hidden md:flex items-center space-x-6">
                 <div class="hidden md:flex items-center space-x-6">
                     @if(request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index'))
-                        <x-nav-link href="{{ route('index.index') }}" :active="request()->routeIs('index.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Admin Dashboard') }}</x-nav-link>
+                        <x-nav-link href="{{ route('admin.ecospaces') }}" :active="request()->routeIs('index.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Admin Dashboard') }}</x-nav-link>
                     @else
                         <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Dashboard') }}</x-nav-link>
-                        @if(!(Auth::user() && (Auth::user()->userTypeID === 1 || Auth::user()->userTypeID === 3)))
-                            <x-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Submit an EcoSpace') }}</x-nav-link>
-                        @endif
-                        @if(!(Auth::user() && Auth::user()->userTypeID === 1))
-                            <x-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Submit an Event') }}</x-nav-link>
-                        @endif
                         <x-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Events') }}</x-nav-link>
-                        <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Users') }}</x-nav-link>
+                        @auth
+                            {{-- 'My Events' link removed per request --}}
+                        @endauth
+                        <x-nav-link href="{{ route('users.index') }}" data-requires-login="true" :active="request()->routeIs('users.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Users') }}</x-nav-link>
+                        @if(!(Auth::user() && Auth::user()->userTypeID === 1))
+                        <div class="relative">
+                            <x-dropdown align="right" width="48">
+                                <x-slot name="trigger">
+                                    <button type="button" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                                        {{ __('Add listing') }}
+                                        <svg class="ms-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    <div class="w-48">
+                                        @if(!(Auth::user() && (Auth::user()->userTypeID === 1 || Auth::user()->userTypeID === 3)))
+                                            <x-dropdown-link href="{{ route('submitecospace') }}">{{ __('Submit an EcoSpace') }}</x-dropdown-link>
+                                        @endif
+
+                                        @if(!(Auth::user() && Auth::user()->userTypeID === 1))
+                                            <x-dropdown-link href="{{ route('submitevent') }}">{{ __('Submit an Event') }}</x-dropdown-link>
+                                        @endif
+                                    </div>
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                        @endif
                     @endif
                 </div>
 
@@ -94,10 +114,10 @@
                                     <x-dropdown-link href="{{ route('api-tokens.index') }}">{{ __('API Tokens') }}</x-dropdown-link>
                                 @endif
                                 @if(Auth::user() && Auth::user()->userTypeID === 1)
-                                    @if(request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index'))
+                                        @if(request()->routeIs('index.index') || request()->routeIs('create.index') || request()->routeIs('edit.index'))
                                         <x-dropdown-link href="{{ route('dashboard') }}">{{ __('Dashboard') }}</x-dropdown-link>
                                     @else
-                                        <x-dropdown-link href="{{ route('index.index') }}">{{ __('Admin Dashboard') }}</x-dropdown-link>
+                                        <x-dropdown-link href="{{ route('admin.ecospaces') }}">{{ __('Admin Dashboard') }}</x-dropdown-link>
                                     @endif
                                 @endif
                                 <div class="border-t mt-2"></div>
@@ -132,16 +152,21 @@
 
     <!-- Responsive Navigation Menu (kept original responsive links and settings) -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden md:hidden bg-white border-t border-gray-200">
-        <div class="pt-4 pb-3 space-y-2 px-4">
+            <div class="pt-4 pb-3 space-y-2 px-4">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>
-            @if(!(Auth::user() && (Auth::user()->userTypeID === 1 || Auth::user()->userTypeID === 3)))
-                <x-responsive-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')">{{ __('Submit an EcoSpace') }}</x-responsive-nav-link>
-            @endif
-            @if(!(Auth::user() && Auth::user()->userTypeID === 1))
-                <x-responsive-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')">{{ __('Submit an Event') }}</x-responsive-nav-link>
-            @endif
             <x-responsive-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')">{{ __('Events') }}</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">{{ __('Users') }}</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('users.index') }}" data-requires-login="true" :active="request()->routeIs('users.index')">{{ __('Users') }}</x-responsive-nav-link>
+            @if(!(Auth::user() && Auth::user()->userTypeID === 1))
+            <div class="px-2">
+                <div class="text-xs text-gray-500 px-2 py-1">{{ __('Add listing') }}</div>
+                @if(!(Auth::user() && (Auth::user()->userTypeID === 1 || Auth::user()->userTypeID === 3)))
+                    <x-responsive-nav-link href="{{ route('submitecospace') }}" :active="request()->is('submitecospace')">{{ __('Submit an EcoSpace') }}</x-responsive-nav-link>
+                @endif
+                @if(!(Auth::user() && Auth::user()->userTypeID === 1))
+                    <x-responsive-nav-link href="{{ route('submitevent') }}" :active="request()->is('submitevent')">{{ __('Submit an Event') }}</x-responsive-nav-link>
+                @endif
+            </div>
+            @endif
         </div>
 
         @auth
@@ -203,9 +228,8 @@
     .modal-overlay:target, .modal-overlay.show { display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; }
     .modal { background: white; border-radius: 0.5rem; max-width: 28rem; width: 95%; padding: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; }
     .modal .close { position: absolute; right: 0.5rem; top: 0.5rem; }
-    .modal input:focus, .modal button:focus, .modal a:focus { outline: 3px solid rgba(236,72,153,0.25); outline-offset: 2px; }
+    .modal input:focus, .modal button:focus, .modal a:focus { outline: 3px solid rgba(16,185,129,0.25); outline-offset: 2px; }
 </style>
-
 <!-- Login Modal -->
 @php
     $showLogin = old('form') === 'login' || ($errors->any() && old('form') === 'login');
@@ -215,7 +239,7 @@
 <div id="login" class="modal-overlay {{ $showLogin ? 'show' : '' }}" role="dialog" aria-modal="true" aria-labelledby="login-title">
     <div class="modal" tabindex="-1">
         <a href="#" class="close text-gray-500">✕</a>
-        <h3 id="login-title" class="text-lg font-semibold text-pink-800 mb-4">{{ __('Log in') }}</h3>
+        <h3 id="login-title" class="text-lg font-semibold text-emerald-800 mb-4">{{ __('Log in') }}</h3>
 
         @if(session('status'))
             <div class="mb-3 text-sm text-green-700">{{ session('status') }}</div>
@@ -230,34 +254,88 @@
             </div>
         @endif
 
-        <p class="mb-3 text-sm text-pink-700">{{ __('No account yet?') }} <a href="#register" class="text-pink-600 hover:underline">{{ __('Register') }}</a></p>
         <form method="POST" action="{{ route('login') }}">
             @csrf
             <input type="hidden" name="form" value="login">
             <div class="mb-3">
-                <label for="login_email" class="block text-sm text-pink-700">{{ __('Email') }}</label>
+                <label for="login_email" class="block text-sm text-emerald-700">{{ __('Email') }}</label>
                 <input id="login_email" name="email" type="email" required class="w-full border rounded px-3 py-2" value="{{ old('email') }}" />
             </div>
             <div class="mb-3">
-                <label for="login_password" class="block text-sm text-pink-700">{{ __('Password') }}</label>
+                <label for="login_password" class="block text-sm text-emerald-700">{{ __('Password') }}</label>
                 <input id="login_password" name="password" type="password" required class="w-full border rounded px-3 py-2" />
             </div>
             <div class="flex items-center justify-between mb-4">
-                <label class="inline-flex items-center text-sm text-pink-700"><input type="checkbox" name="remember" class="mr-2" {{ old('remember') ? 'checked' : '' }}> {{ __('Remember me') }}</label>
-                <a href="{{ route('password.request') ?? '#' }}" class="text-sm text-pink-600 hover:underline">{{ __('Forgot your password?') }}</a>
+                <label class="inline-flex items-center text-sm text-emerald-700"><input type="checkbox" name="remember" class="mr-2" {{ old('remember') ? 'checked' : '' }}> {{ __('Remember me') }}</label>
+                <a href="{{ route('password.request') ?? '#' }}" class="text-sm text-emerald-600 hover:underline">{{ __('Forgot your password?') }}</a>
             </div>
+            <p class="mb-3 text-sm text-emerald-700">{{ __('No account yet?') }} <a href="#register" class="text-emerald-600 hover:underline">{{ __('Register') }}</a></p>
             <div class="flex justify-end">
-                <button type="submit" class="px-4 py-2 bg-pink-600 text-white rounded">{{ __('Log in') }}</button>
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded">{{ __('Log in') }}</button>
             </div>
         </form>
     </div>
 </div>
 
+<script>
+    (function(){
+        // Delegate clicks on any element with data-requires-login
+        document.addEventListener('click', function(e){
+            const el = e.target.closest && e.target.closest('[data-requires-login]');
+            if(!el) return;
+            // Only intercept left-clicks without modifier keys
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+            const href = el.getAttribute('href') || el.dataset.href;
+            if(!href) return;
+
+            e.preventDefault();
+
+            // Perform a short AJAX request to the target to check if login is required.
+            fetch(href, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            }).then(async function(resp){
+                if (resp.status === 401) {
+                    try {
+                        const json = await resp.json().catch(()=>null);
+                        if (json && json.requires_login) {
+                            // Open the existing CSS-only login modal by setting the hash.
+                            window.location.hash = '#login';
+                            return;
+                        }
+                    } catch (err) {
+                        // fall through to open login
+                    }
+                    window.location.hash = '#login';
+                    return;
+                }
+
+                if (resp.ok) {
+                    // If the endpoint returned successfully, follow the link.
+                    window.location.href = href;
+                    return;
+                }
+
+                // On unexpected responses, fallback to normal navigation
+                window.location.href = href;
+            }).catch(function(){
+                // If fetch fails (network), fallback to normal navigation
+                window.location.href = href;
+            });
+        }, false);
+    })();
+</script>
+
 <!-- Register Modal -->
 <div id="register" class="modal-overlay {{ $showRegister ? 'show' : '' }}" role="dialog" aria-modal="true" aria-labelledby="register-title">
     <div class="modal" tabindex="-1">
         <a href="#" class="close text-gray-500">✕</a>
-        <h3 id="register-title" class="text-lg font-semibold text-pink-800 mb-4">{{ __('Register') }}</h3>
+        <h3 id="register-title" class="text-lg font-semibold text-emerald-800 mb-4">{{ __('Register') }}</h3>
 
         @if($errors->any() && $showRegister)
             <div class="mb-3 text-sm text-red-700" role="alert">
@@ -273,24 +351,24 @@
             @csrf
             <input type="hidden" name="form" value="register">
             <div class="mb-3">
-                <label for="reg_name" class="block text-sm text-pink-700">{{ __('Name') }}</label>
+                <label for="reg_name" class="block text-sm text-emerald-700">{{ __('Name') }}</label>
                 <input id="reg_name" name="name" type="text" required class="w-full border rounded px-3 py-2" value="{{ old('name') }}" />
             </div>
             <div class="mb-3">
-                <label for="reg_email" class="block text-sm text-pink-700">{{ __('Email') }}</label>
+                <label for="reg_email" class="block text-sm text-emerald-700">{{ __('Email') }}</label>
                 <input id="reg_email" name="email" type="email" required class="w-full border rounded px-3 py-2" value="{{ old('email') }}" />
             </div>
             <div class="mb-3">
-                <label for="reg_password" class="block text-sm text-pink-700">{{ __('Password') }}</label>
+                <label for="reg_password" class="block text-sm text-emerald-700">{{ __('Password') }}</label>
                 <input id="reg_password" name="password" type="password" required class="w-full border rounded px-3 py-2" />
             </div>
             <div class="mb-3">
-                <label for="reg_password_confirmation" class="block text-sm text-pink-700">{{ __('Confirm Password') }}</label>
+                <label for="reg_password_confirmation" class="block text-sm text-emerald-700">{{ __('Confirm Password') }}</label>
                 <input id="reg_password_confirmation" name="password_confirmation" type="password" required class="w-full border rounded px-3 py-2" />
             </div>
-            <p class="mt-2 mb-4 text-sm text-pink-700">{{ __('Have an account?') }} <a href="#login" class="text-pink-600 hover:underline">{{ __('Log in') }}</a></p>
+            <p class="mt-2 mb-4 text-sm text-emerald-700">{{ __('Have an account?') }} <a href="#login" class="text-emerald-600 hover:underline">{{ __('Log in') }}</a></p>
             <div class="flex justify-end">
-                <button type="submit" class="px-4 py-2 bg-pink-600 text-white rounded">{{ __('Register') }}</button>
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded">{{ __('Register') }}</button>
             </div>
         </form>
     </div>

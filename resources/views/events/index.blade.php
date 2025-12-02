@@ -2,106 +2,82 @@
 
     @push('styles')
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-            :root{
-                /* EcoSpaces brand tokens (from your screenshot) */
-                --brand-green: #3C7A28;        /* main header/brand green */
-                --brand-green-light: #6BBF59;  /* secondary leaf green */
-                --brand-bg-light: #EAF7EF;     /* pale hero / page background */
-                --brand-pink-light: #FCECEF;   /* super light blush pink */
-                --brand-pink-accent: #F7B7C8;  /* stronger pink accent */
-                --brand-maroon: #642D45;       /* (optional darker accent) */
-            }
-
-            /* small utility shortcuts so you can use tokens in markup */
-            .text-brand-green { color: var(--brand-green); }
-            .text-brand-green-light { color: var(--brand-green-light); }
-            .text-brand-pink { color: var(--brand-pink-accent); }
-            .bg-brand-bg-light { background-color: var(--brand-bg-light); }
-            .bg-brand-pink-light { background-color: var(--brand-pink-light); }
-
-            body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+            /* Keep dashboard-compatible toggle behavior for compact views */
+            #dashboard-main.cards-only > *:not(#events-section) { display: none !important; }
         </style>
     @endpush
 
     <!-- Use the pale mint background for the whole page -->
-   <main class="min-h-screen" style="background:#EAF7EF;">
+    <main id="dashboard-main" class="bg-seiun-sky">
 
 
         <!-- Hero (white card so content stays readable on the pale mint page) -->
-        <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-            <div class="bg-white rounded-lg shadow-md p-10">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
-    <span class="text-dark-green">Discover Local</span><br>
-    <span class="text-light-green">Events Near You</span>
-</h1>
+        <section id="hero-section" class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
+                        <span class="text-dark-green">Discover Local</span>
+                        <br>
+                        <span class="text-light-green">Events Near You</span>
+                    </h1>
 
-                        <p class="text-2xl text-dark-green font-extralight mb-8 max-w-lg">
-    Find community events, workshops, and gatherings. RSVP, share, and join your neighbors for greener initiatives.
-</p>
+                    <p class="text-2xl text-dark-green font-extralight mb-8 max-w-lg">Find community events, workshops, and gatherings. RSVP, share, and join your neighbors for greener initiatives.</p>
 
-
-                        <form method="GET" action="{{ route('events.index') }}" class="flex items-center bg-white rounded-lg overflow-hidden max-w-xl shadow-sm">
-                            <span class="pl-4 text-gray-400">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                            </span>
-
-                            <input id="search" name="search" type="search"
-                                   placeholder="Search events, locations, hosts..."
-                                   value="{{ request('search', '') }}"
-                                   class="flex-grow p-4 border-none focus:ring-0 text-gray-700 placeholder-gray-500" />
-
-                            <button type="submit"
-                                    class="bg-[color:var(--brand-pink-accent)] text-white px-6 py-4 font-semibold hover:opacity-95 transition-colors">
-                                Search
-                            </button>
-                        </form>
-
-                        <p class="text-gray-500 text-sm mt-4">Browse upcoming and past events across the platform.</p>
-                    </div>
-
-                    {{-- Map / placeholder: use first event address if available, otherwise default location --}}
-                    @php
-                        $defaultHeroLocation = 'Ayala Triangle Gardens, Makati'; // change default here
-                        $heroLocation = (isset($events) && $events->count() && !empty($events->first()->eventAdd))
-                            ? $events->first()->eventAdd
-                            : $defaultHeroLocation;
-                        $mapQuery = urlencode($heroLocation);
-                        $mapSrc = "https://www.google.com/maps?q={$mapQuery}&output=embed";
-                    @endphp
-
-                    <div class="hidden md:block">
-                        {{-- Responsive wrapper with aspect ratio similar to your original image --}}
-                        <div class="rounded-lg shadow-lg overflow-hidden" style="aspect-ratio:4/3;">
-                            {{-- Google Maps iframe embed (no API key required for this basic embed) --}}
-                            <iframe
-                                src="{{ $mapSrc }}"
-                                width="100%"
-                                height="100%"
-                                frameborder="0"
-                                style="border:0; display:block; width:100%; height:100%;"
-                                allowfullscreen
-                                aria-label="Map showing {{ $heroLocation }}">
-                            </iframe>
+                    <div class="max-w-xl bg-white rounded-lg p-4">
+                        <div class="border-2 border-magenta-secondary rounded-lg p-2">
+                            <form method="GET" action="{{ route('events.index') }}" class="flex items-center bg-white shadow-md rounded-lg overflow-hidden w-full">
+                                <span class="pl-4 text-gray-400">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                                <input id="search" name="search" type="search" placeholder="Search events, locations, hosts..." value="{{ request('search', '') }}" class="flex-grow p-4 border-none focus:ring-0 text-gray-700 placeholder-gray-500" />
+                                <button type="submit" class="bg-magenta-secondary text-white px-6 py-4 font-semibold hover:opacity-95 transition-colors">Search</button>
+                            </form>
                         </div>
                     </div>
+                    <p class="text-gray-500 text-sm mt-4">Browse upcoming and past events across the platform.</p>
+                </div>
+
+                {{-- Slideshow / placeholder: show images from first several events, fall back to asset images --}}
+                @php
+                    // Collect up to 5 slide images from events (first image of each event) or fallbacks
+                    $slideImages = [];
+                    if(isset($events) && $events->count()){
+                        foreach($events->take(5) as $ev){
+                            $first = $ev->images->first();
+                            if($first){
+                                $slideImages[] = Storage::url($first->path);
+                            } else {
+                                $slideImages[] = asset('images/EcoSpace5.jpg');
+                            }
+                        }
+                    } else {
+                        // default slideshow images
+                        $slideImages = [
+                            asset('images/EcoSpace1.jpg'),
+                            asset('images/EcoSpace2.jpg'),
+                            asset('images/EcoSpace3.jpg')
+                        ];
+                    }
+                @endphp
+
+                <div class="hidden md:block">
+                    <img id="hero-slide-image" src="{{ $slideImages[0] ?? asset('images/EcoSpace5.jpg') }}" alt="Events slideshow" class="rounded-lg shadow-lg w-full h-auto object-cover transition-opacity duration-1000" style="aspect-ratio:4/3;" />
                 </div>
             </div>
         </section>
 
         <!-- Events Grid -->
-        <section class="py-12 md:py-16">
+        <section id="events-section" class="py-16 md:py-24 bg-cinderella-gray">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--brand-maroon)]">Events</h2>
-                    <a href="{{ route('events.all') }}" class="text-[color:var(--brand-green)] font-semibold hover:underline text-lg">View all &gt;</a>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-magenta-secondary">Events</h2>
+                    <a id="view-all-events" data-requires-login="true" href="{{ route('events.all') }}" class="text-magenta-secondary font-normal hover:underline text-lg">View all &gt;</a>
                 </div>
+
+                <!-- Filters moved to the full listing page -->
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     @if(isset($events) && $events->count())
@@ -118,11 +94,6 @@
                                 <div class="relative">
                                     <a href="{{ route('events.show', ['id' => $event->eventID]) }}" class="block absolute inset-0 z-10" aria-label="View {{ $event->eventName }} details"></a>
                                     <img src="{{ $imgUrl }}" alt="{{ $event->eventName }}" class="w-full h-48 object-cover" />
-                                    <div class="absolute top-4 left-4 z-20">
-                                        <span class="bg-white/90 text-sm px-3 py-1 rounded-full font-medium text-gray-700">
-                                            {{ optional($event->eventDate)->format('M d, Y') ?? $event->eventDate }}
-                                        </span>
-                                    </div>
 
                                     @auth
                                         <form method="POST" action="{{ route('bookmark.event.toggle', $event->eventID) }}" class="absolute top-4 right-4 z-20">
@@ -157,7 +128,7 @@
                                             <a href="{{ route('events.show', ['id' => $event->eventID]) }}" class="inline-flex items-center px-3 py-2 bg-[color:var(--brand-pink-accent)] text-white rounded-md text-sm font-medium">View</a>
                                         </div>
 
-                                        <div class="text-sm text-gray-500">{{ optional($event->eventDate)->format('M d, Y H:i') ?? $event->eventDate }}</div>
+                                        {{-- event date removed per design --}}
                                     </div>
                                 </div>
                             </div>
@@ -170,3 +141,32 @@
         </section>
     </main>
 </x-app-layout>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageElement = document.getElementById('hero-slide-image');
+            if(!imageElement) return;
+
+            const slideImages = {!! json_encode($slideImages ?? []) !!};
+            if(!slideImages || !slideImages.length) return;
+
+            let currentImageIndex = 0;
+            const cycleInterval = 4000; // 4s
+            const fadeDuration = 1000; // match CSS duration
+
+            function cycleImage(){
+                // fade out
+                imageElement.style.opacity = '0';
+                setTimeout(() => {
+                    currentImageIndex = (currentImageIndex + 1) % slideImages.length;
+                    imageElement.src = slideImages[currentImageIndex];
+                    imageElement.style.opacity = '1';
+                }, fadeDuration);
+            }
+
+            // start with first image already set in DOM; begin cycling
+            setInterval(cycleImage, cycleInterval);
+        });
+    </script>
+@endpush

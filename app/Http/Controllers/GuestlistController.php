@@ -36,7 +36,7 @@ class GuestlistController extends Controller
                 return response()->json(['success' => true, 'isGoing' => (bool) $guest->isGoing, 'guestID' => $guest->guestID]);
             }
 
-            return redirect()->back()->with('success', $guest->isGoing ? 'Marked as attending' : 'Marked as not attending');
+            return redirect()->back()->with('success', $guest->isGoing ? 'Marked as attending successfully.' : 'Marked as not attending successfully.');
         }
 
         // Create attendance record
@@ -52,6 +52,6 @@ class GuestlistController extends Controller
             return response()->json(['success' => true, 'isGoing' => true, 'guestID' => $guest->guestID]);
         }
 
-        return redirect()->back()->with('success', 'Marked as attending');
+        return redirect()->back()->with('success', 'Marked as attending successfully.');
     }
 }

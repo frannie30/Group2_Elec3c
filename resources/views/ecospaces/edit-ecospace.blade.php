@@ -1,4 +1,17 @@
+
 <x-app-layout>
+    @php
+        $__full_addr = old('ecospaceAdd', $ecospace->ecospaceAdd ?? '');
+        $__parts = array_map('trim', explode(',', $__full_addr));
+        $__len = count($__parts);
+        if ($__len > 2) {
+            $__address_line = implode(', ', array_slice($__parts, 0, $__len - 2));
+            $__barangay = $__parts[$__len - 2] ?? '';
+        } else {
+            $__address_line = $__parts[0] ?? '';
+            $__barangay = $__parts[1] ?? '';
+        }
+    @endphp
 
 
     <div class="py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 min-h-screen">
@@ -6,8 +19,9 @@
             <div class="bg-white/90 backdrop-blur-lg shadow-2xl sm:rounded-2xl p-10 border border-emerald-200">
                 <h2 class="text-3xl font-extrabold mb-8 text-center text-emerald-700">Edit Ecospace</h2>
 
-                <form method="POST" action="{{ route('user.ecospaces.update', $ecospace->ecospaceID) }}" enctype="multipart/form-data"
-                      onsubmit="return confirm('Save changes to this ecospace?');">
+                    <form method="POST" action="{{ route('user.ecospaces.update', $ecospace->ecospaceID) }}" enctype="multipart/form-data"
+                            data-composite-address data-address-target="ecospaceAdd"
+                        data-confirm="Save changes to this ecospace?">
                     @csrf
                     @method('PUT')
 
@@ -19,9 +33,35 @@
                     </div>
 
                     <div class="mb-6">
-                        <label for="ecospaceAdd" class="block text-emerald-800 font-semibold mb-2">Address</label>
-                        <input type="text" id="ecospaceAdd" name="ecospaceAdd" value="{{ old('ecospaceAdd', $ecospace->ecospaceAdd) }}"
-                               class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                        <label class="block text-emerald-800 font-semibold mb-2">Address</label>
+                        <div class="grid grid-cols-1 gap-3">
+                            <input type="text" data-address-line id="ecospace_address_line_1" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400" placeholder="Street, building, number" value="{{ $__address_line }}" />
+
+                            <select data-barangay id="ecospace_barangay_1" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                                <option value="" disabled {{ $__barangay=='' ? 'selected' : '' }}>-- Select Barangay (Makati) --</option>
+                                <option {{ $__barangay=='Bangkal' ? 'selected' : '' }}>Bangkal</option>
+                                <option {{ $__barangay=='Bel-Air' ? 'selected' : '' }}>Bel-Air</option>
+                                <option {{ $__barangay=='Carmona' ? 'selected' : '' }}>Carmona</option>
+                                <option {{ $__barangay=='Dasmariñas' ? 'selected' : '' }}>Dasmariñas</option>
+                                <option {{ $__barangay=='Forbes Park' ? 'selected' : '' }}>Forbes Park</option>
+                                <option {{ $__barangay=='Guadalupe Nuevo' ? 'selected' : '' }}>Guadalupe Nuevo</option>
+                                <option {{ $__barangay=='Guadalupe Viejo' ? 'selected' : '' }}>Guadalupe Viejo</option>
+                                <option {{ $__barangay=='Palanan' ? 'selected' : '' }}>Palanan</option>
+                                <option {{ $__barangay=='Pembo' ? 'selected' : '' }}>Pembo</option>
+                                <option {{ $__barangay=='Pitogo' ? 'selected' : '' }}>Pitogo</option>
+                                <option {{ $__barangay=='Poblacion' ? 'selected' : '' }}>Poblacion</option>
+                                <option {{ $__barangay=='San Antonio' ? 'selected' : '' }}>San Antonio</option>
+                                <option {{ $__barangay=='San Isidro' ? 'selected' : '' }}>San Isidro</option>
+                                <option {{ $__barangay=='San Lorenzo' ? 'selected' : '' }}>San Lorenzo</option>
+                                <option {{ $__barangay=='San Miguel' ? 'selected' : '' }}>San Miguel</option>
+                                <option {{ $__barangay=='Valenzuela' ? 'selected' : '' }}>Valenzuela</option>
+                                <option {{ $__barangay=='Tejeros' ? 'selected' : '' }}>Tejeros</option>
+                                <option {{ $__barangay=='Urdaneta' ? 'selected' : '' }}>Urdaneta</option>
+                            </select>
+
+                            <div class="text-sm text-emerald-600">City: <strong>Makati</strong>, Region: <strong>Metro Manila</strong></div>
+                        </div>
+                        <input type="hidden" name="ecospaceAdd" value="{{ $__full_addr }}" />
                         @error('ecospaceAdd')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
                     </div>
 
@@ -31,24 +71,7 @@
                         @error('ecospaceDesc')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label for="openingHours" class="block text-emerald-800 font-semibold mb-2">Opening Hours</label>
-                            <input type="time" id="openingHours" name="openingHours" value="{{ old('openingHours', $ecospace->openingHours) }}" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
-                            @error('openingHours')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                        </div>
-                        <div>
-                            <label for="closingHours" class="block text-emerald-800 font-semibold mb-2">Closing Hours</label>
-                            <input type="time" id="closingHours" name="closingHours" value="{{ old('closingHours', $ecospace->closingHours) }}" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
-                            @error('closingHours')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label for="daysOpened" class="block text-emerald-800 font-semibold mb-2">Days Opened</label>
-                        <input type="text" id="daysOpened" name="daysOpened" value="{{ old('daysOpened', $ecospace->daysOpened) }}" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
-                        @error('daysOpened')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                    </div>
+                    <!-- Opening hours / closing hours / days opened removed per spec -->
 
                     <div class="mb-6">
                         <label for="priceTierID" class="block text-emerald-800 font-semibold mb-2">Price Tier</label>
@@ -84,7 +107,7 @@
 
                     <div class="flex justify-center gap-4 mt-8">
                         <button type="submit" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 transition">Save Changes</button>
-                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-emerald-800 px-8 py-3 rounded-xl font-bold">Cancel</a>
+                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-emerald-800 px-8 py-3 rounded-xl font-bold" data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -103,8 +126,9 @@
             <div class="bg-white/90 backdrop-blur-lg shadow-2xl sm:rounded-2xl p-10 border border-pink-200">
                 <h2 class="text-3xl font-extrabold mb-8 text-center text-pink-700">Edit Ecospace</h2>
 
-                <form method="POST" action="{{ route('user.ecospaces.update', $ecospace->ecospaceID) }}" enctype="multipart/form-data"
-                      onsubmit="return confirm('Save changes to this ecospace?');">
+                    <form method="POST" action="{{ route('user.ecospaces.update', $ecospace->ecospaceID) }}" enctype="multipart/form-data"
+                            data-composite-address data-address-target="ecospaceAdd"
+                        data-confirm="Save changes to this ecospace?">
                     @csrf
                     @method('PUT')
 
@@ -116,9 +140,35 @@
                     </div>
 
                     <div class="mb-6">
-                        <label for="ecospaceAdd" class="block text-pink-800 font-semibold mb-2">Address</label>
-                        <input type="text" id="ecospaceAdd" name="ecospaceAdd" value="{{ old('ecospaceAdd', $ecospace->ecospaceAdd) }}"
-                               class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400">
+                        <label class="block text-pink-800 font-semibold mb-2">Address</label>
+                        <div class="grid grid-cols-1 gap-3">
+                            <input type="text" data-address-line id="ecospace_address_line_2" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400" placeholder="Street, building, number" value="{{ $__address_line }}" />
+
+                            <select data-barangay id="ecospace_barangay_2" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400">
+                                <option value="" disabled {{ $__barangay=='' ? 'selected' : '' }}>-- Select Barangay (Makati) --</option>
+                                <option {{ $__barangay=='Bangkal' ? 'selected' : '' }}>Bangkal</option>
+                                <option {{ $__barangay=='Bel-Air' ? 'selected' : '' }}>Bel-Air</option>
+                                <option {{ $__barangay=='Carmona' ? 'selected' : '' }}>Carmona</option>
+                                <option {{ $__barangay=='Dasmariñas' ? 'selected' : '' }}>Dasmariñas</option>
+                                <option {{ $__barangay=='Forbes Park' ? 'selected' : '' }}>Forbes Park</option>
+                                <option {{ $__barangay=='Guadalupe Nuevo' ? 'selected' : '' }}>Guadalupe Nuevo</option>
+                                <option {{ $__barangay=='Guadalupe Viejo' ? 'selected' : '' }}>Guadalupe Viejo</option>
+                                <option {{ $__barangay=='Palanan' ? 'selected' : '' }}>Palanan</option>
+                                <option {{ $__barangay=='Pembo' ? 'selected' : '' }}>Pembo</option>
+                                <option {{ $__barangay=='Pitogo' ? 'selected' : '' }}>Pitogo</option>
+                                <option {{ $__barangay=='Poblacion' ? 'selected' : '' }}>Poblacion</option>
+                                <option {{ $__barangay=='San Antonio' ? 'selected' : '' }}>San Antonio</option>
+                                <option {{ $__barangay=='San Isidro' ? 'selected' : '' }}>San Isidro</option>
+                                <option {{ $__barangay=='San Lorenzo' ? 'selected' : '' }}>San Lorenzo</option>
+                                <option {{ $__barangay=='San Miguel' ? 'selected' : '' }}>San Miguel</option>
+                                <option {{ $__barangay=='Valenzuela' ? 'selected' : '' }}>Valenzuela</option>
+                                <option {{ $__barangay=='Tejeros' ? 'selected' : '' }}>Tejeros</option>
+                                <option {{ $__barangay=='Urdaneta' ? 'selected' : '' }}>Urdaneta</option>
+                            </select>
+
+                            <div class="text-sm text-pink-600">City: <strong>Makati</strong>, Region: <strong>Metro Manila</strong></div>
+                        </div>
+                        <input type="hidden" name="ecospaceAdd" value="{{ $__full_addr }}" />
                         @error('ecospaceAdd')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
                     </div>
 
@@ -128,24 +178,7 @@
                         @error('ecospaceDesc')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label for="openingHours" class="block text-pink-800 font-semibold mb-2">Opening Hours</label>
-                            <input type="time" id="openingHours" name="openingHours" value="{{ old('openingHours', $ecospace->openingHours) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400">
-                            @error('openingHours')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                        </div>
-                        <div>
-                            <label for="closingHours" class="block text-pink-800 font-semibold mb-2">Closing Hours</label>
-                            <input type="time" id="closingHours" name="closingHours" value="{{ old('closingHours', $ecospace->closingHours) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400">
-                            @error('closingHours')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label for="daysOpened" class="block text-pink-800 font-semibold mb-2">Days Opened</label>
-                        <input type="text" id="daysOpened" name="daysOpened" value="{{ old('daysOpened', $ecospace->daysOpened) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50 focus:ring-2 focus:ring-pink-400">
-                        @error('daysOpened')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
-                    </div>
+                    <!-- Opening hours / closing hours / days opened removed per spec -->
 
                     <div class="mb-6">
                         <label for="priceTierID" class="block text-pink-800 font-semibold mb-2">Price Tier</label>
@@ -181,7 +214,7 @@
 
                     <div class="flex justify-center gap-4 mt-8">
                         <button type="submit" class="bg-pink-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-pink-700 transition">Save Changes</button>
-                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-pink-800 px-8 py-3 rounded-xl font-bold">Cancel</a>
+                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-pink-800 px-8 py-3 rounded-xl font-bold" data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">Cancel</a>
                     </div>
                 </form>
             </div>

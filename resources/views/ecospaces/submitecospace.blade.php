@@ -7,8 +7,8 @@
                 <h2 class="text-3xl font-extrabold mb-8 text-center text-emerald-700">Add an Ecospace</h2>
                 <p class="text-emerald-600 text-center mb-8">Fill out the form below. Fields marked with <span class="text-emerald-700 font-bold">*</span> are required.</p>
 
-                <form method="POST" action="{{ route('ecospaces.store') }}" enctype="multipart/form-data"
-                      onsubmit="return confirm('Are you sure you want to submit this ecospace?');">
+                    <form method="POST" action="{{ route('ecospaces.store') }}" enctype="multipart/form-data"
+                        data-confirm="Are you sure you want to submit this ecospace?" data-composite-address data-address-target="ecospaceAdd">
                     @csrf
 
                     <!-- Ecospace Name -->
@@ -24,15 +24,38 @@
                         @enderror
                     </div>
 
-                    <!-- Address -->
+                    <!-- Address (street + barangay + static city/region) -->
                     <div class="mb-6">
-                        <label for="ecospaceAdd" class="block text-emerald-800 font-semibold mb-2">Address</label>
-                        <input type="text" id="ecospaceAdd" name="ecospaceAdd" value="{{ old('ecospaceAdd') }}"
-                               class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400"
-                               placeholder="Street, City, ZIP">
-                        @error('ecospaceAdd')
-                        <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
-                        @enderror
+                        <label class="block text-emerald-800 font-semibold mb-2">Address</label>
+                        <div class="grid grid-cols-1 gap-3">
+                            <input type="text" data-address-line name="ecospace_address_line" id="ecospace_address_line" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400" placeholder="Street, building, number" />
+
+                            <select data-barangay name="ecospace_barangay" id="ecospace_barangay" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                                <option value="" disabled selected>-- Select Barangay (Makati) --</option>
+                                <option>Bangkal</option>
+                                <option>Bel-Air</option>
+                                <option>Carmona</option>
+                                <option>Dasmariñas</option>
+                                <option>Forbes Park</option>
+                                <option>Guadalupe Nuevo</option>
+                                <option>Guadalupe Viejo</option>
+                                <option>Palanan</option>
+                                <option>Pembo</option>
+                                <option>Pitogo</option>
+                                <option>Poblacion</option>
+                                <option>San Antonio</option>
+                                <option>San Isidro</option>
+                                <option>San Lorenzo</option>
+                                <option>San Miguel</option>
+                                <option>Valenzuela</option>
+                                <option>Tejeros</option>
+                                <option>Urdaneta</option>
+                            </select>
+
+                            <div class="text-sm text-emerald-600">City: <strong>Makati</strong>, Region: <strong>Metro Manila</strong></div>
+                        </div>
+                        {{-- Hidden combined field submitted to server --}}
+                        <input type="hidden" name="ecospaceAdd" value="{{ old('ecospaceAdd') }}" />
                     </div>
 
                     <!-- Description -->
@@ -83,9 +106,9 @@
                         <button type="submit" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 hover:scale-105 transition">
                             Submit Ecospace
                         </button>
-                        <a href="{{ route('index.index') }}"
-                           class="bg-gray-300 text-emerald-800 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-400 hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-emerald-400 text-center"
-                           onclick="return confirm('Are you sure you want to cancel? Any unsaved changes will be lost.');">
+                                <a href="{{ route('index.index') }}"
+                                    class="bg-gray-300 text-emerald-800 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-400 hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-emerald-400 text-center"
+                                    data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">
                             Cancel
                         </a>
                     </div>

@@ -75,8 +75,6 @@
 
                         <div class="mt-6 text-sm text-gray-700">
                             <div><strong>Address:</strong> {{ $ecospace->ecospaceAdd ?? 'N/A' }}</div>
-                            <div><strong>Opening Hours:</strong> {{ $ecospace->openingHours ?? 'N/A' }} - {{ $ecospace->closingHours ?? 'N/A' }}</div>
-                            <div><strong>Days Opened:</strong> {{ $ecospace->daysOpened ?? 'N/A' }}</div>
 
                             @isset($isOpenNow)
                                 <div class="mt-2">
@@ -150,8 +148,8 @@
                             <div>
                                 <h3 class="text-2xl font-bold text-gray-900 inline">Reviews</h3>
                                 @if($__reviewCount)
-                                    <span class="ml-3 text-sm text-gray-600">{{ $__reviewCount }} review{{ $__reviewCount > 1 ? 's' : '' }}</span>
-                                    <span class="ml-3 text-sm text-gray-700 font-semibold">{{ $__avgRating ? number_format($__avgRating,1) : '-' }}/5</span>
+                                    <span class="ml-3 text-sm text-gray-700 font-semibold">{{ $__avgRating ? (int) round($__avgRating) : '-' }}/5</span>
+                                    <span class="ml-2 text-sm text-gray-600">({{ $__reviewCount }} review{{ $__reviewCount > 1 ? 's' : '' }})</span>
                                 @else
                                     <div class="text-gray-600 mt-2">No reviews yet. Be the first to review this ecospace.</div>
                                 @endif
@@ -166,10 +164,10 @@
                                 @endphp
                                 <div class="flex items-center gap-2 text-sm">
                                     <span class="text-gray-600">Filter:</span>
-                                    <a href="{{ $allRatingsUrl }}" class="px-2 py-1 rounded text-sm {{ $selectedRating === '' ? 'bg-pink-600 text-white' : 'bg-white border' }}">All</a>
+                                    <a href="{{ $allRatingsUrl }}" class="px-2 py-1 rounded text-sm {{ $selectedRating === '' ? 'bg-green-600 text-white' : 'bg-white border' }}">All</a>
                                     @for($s=5;$s>=1;$s--)
                                         @php $url = request()->fullUrlWithQuery(['rating' => $s, 'reviews_page' => 1]); @endphp
-                                        <a href="{{ $url }}" class="px-2 py-1 rounded text-sm {{ (string)$selectedRating === (string)$s ? 'bg-pink-600 text-white' : 'bg-white border' }}">{{ $s }}</a>
+                                        <a href="{{ $url }}" class="px-2 py-1 rounded text-sm {{ (string)$selectedRating === (string)$s ? 'bg-green-600 text-white' : 'bg-white border' }}">{{ $s }}</a>
                                     @endfor
                                 </div>
 
@@ -226,7 +224,7 @@
                                                 @auth
                                                     @if(auth()->id() == $r->userID)
                                                         <a href="{{ route('ecospace.reviews.edit', [$ecospace->ecospaceID, $r->reviewID]) }}" class="text-sm text-yellow-600">Edit</a>
-                                                        <form action="{{ route('ecospace.reviews.destroy', [$ecospace->ecospaceID, $r->reviewID]) }}" method="POST" onsubmit="return confirm('Delete this review?');">
+                                                        <form action="{{ route('ecospace.reviews.destroy', [$ecospace->ecospaceID, $r->reviewID]) }}" method="POST" data-confirm="Delete this review?">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="text-sm text-red-600">Delete</button>

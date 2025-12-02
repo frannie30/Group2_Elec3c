@@ -102,4 +102,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(EvBookmark::class, 'userID', 'id');
     }
+
+    /**
+     * Events created by this user (owner relationship).
+     */
+    public function events()
+    {
+        return $this->hasMany(\App\Models\Event::class, 'userID', 'id');
+    }
 }

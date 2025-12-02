@@ -48,5 +48,134 @@
         @stack('modals')
 
         @livewireScripts
+        <script>
+            // Global handler: intercept clicks/submits on elements with `data-confirm`.
+            (function(){
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                function handleConfirm(event, message, proceed) {
+                    event.preventDefault();
+                    Swal.fire({
+                        title: message || 'Are you sure?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'Cancel',
+                    }).then((result) => {
+                        if (result.isConfirmed) proceed();
+                    });
+                }
+
+                // Intercept form submissions that have data-confirm
+                document.addEventListener('submit', function(e){
+                    const form = e.target;
+                    if (!form || !form.hasAttribute) return;
+                    const msg = form.getAttribute('data-confirm');
+                    if (msg) {
+                        handleConfirm(e, msg, () => form.submit());
+                    }
+                }, true);
+
+                // Intercept link clicks with data-confirm
+                document.addEventListener('click', function(e){
+                    const el = e.target.closest && e.target.closest('[data-confirm]');
+                    if (!el) return;
+
+                    // If it's a form control inside a form (button with data-confirm), let the form handler deal with it
+                    if (el.tagName === 'BUTTON' && el.type === 'submit' && el.form) return;
+
+                    const msg = el.getAttribute('data-confirm');
+                    if (!msg) return;
+
+                    // For anchors, confirm then navigate
+                    if (el.tagName === 'A' && el.href) {
+                        handleConfirm(e, msg, () => { window.location.href = el.href; });
+                        return;
+                    }
+
+                    // For buttons not in a form, if data-action is present, try to POST using fetch
+                    if (el.tagName === 'BUTTON' && el.dataset.action) {
+                        handleConfirm(e, msg, () => {
+                            const action = el.dataset.action;
+                            const method = (el.dataset.method || 'POST').toUpperCase();
+                            const headers = { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' };
+                            fetch(action, { method, headers }).then(()=> location.reload()).catch(()=> location.reload());
+                        });
+                        return;
+                    }
+                });
+            })();
+        </script>
+        {{-- Session flash toasts (SweetAlert2) --}}
+        @if(session('success') || session('error'))
+            <script>
+                (function(){
+                    const success = @json(session('success'));
+                    const error = @json(session('error'));
+                    if (success) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: success,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                    } else if (error) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: error,
+                            showConfirmButton: false,
+                            timer: 4000,
+                            timerProgressBar: true,
+                        });
+                    }
+                })();
+            </script>
+        @endif
+        <script>
+            // Combine address parts into a single hidden input for forms that opt-in
+            (function(){
+                function trim(s){ return (s||'').toString().trim(); }
+
+                document.addEventListener('submit', function(e){
+                    const form = e.target;
+                    if (!form || !form.hasAttribute) return;
+                    if (!form.hasAttribute('data-composite-address')) return;
+
+                    const targetName = form.getAttribute('data-address-target') || 'address';
+                    const lineEl = form.querySelector('[data-address-line]');
+                    const barangayEl = form.querySelector('[data-barangay]');
+
+                    const line = lineEl ? trim(lineEl.value) : '';
+                    const barangay = barangayEl ? trim(barangayEl.value) : '';
+                    const city = 'Makati';
+                    const region = 'Metro Manila';
+
+                    // Compose: "{line}, {barangay}, Makati, Metro Manila"
+                    const parts = [];
+                    if (line) parts.push(line);
+                    if (barangay) parts.push(barangay);
+                    parts.push(city);
+                    parts.push(region);
+
+                    const combined = parts.join(', ');
+
+                    // Set or create the hidden input with the server-expected name
+                    let hidden = form.querySelector('input[name="' + targetName + '"]');
+                    if (!hidden) {
+                        hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = targetName;
+                        form.appendChild(hidden);
+                    }
+                    hidden.value = combined;
+                    // allow submit to continue
+                }, true);
+            })();
+        </script>
     </body>
 </html>

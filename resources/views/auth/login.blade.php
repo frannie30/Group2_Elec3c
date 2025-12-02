@@ -7,7 +7,7 @@
         <x-validation-errors class="mb-4" />
 
         @session('status')
-            <div class="mb-4 font-medium text-sm text-pink-600">
+            <div class="mb-4 font-medium text-sm text-emerald-600">
                 {{ $value }}
             </div>
         @endsession
@@ -17,18 +17,18 @@
 
             <div>
                 <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full border-pink-300 focus:border-pink-500 focus:ring-pink-500" 
+                <x-input id="email" class="block mt-1 w-full border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500" 
                 type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
             <div class="mt-4">
                 <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full border-pink-300 focus:border-pink-500 focus:ring-pink-500" 
+                <x-input id="password" class="block mt-1 w-full border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500" 
                 type="password" name="password" required autocomplete="current-password" />
             </div>
                           @if (Route::has('password.request'))
-                    <a class="underline text-sm text-pink-600 hover:text-pink-800 rounded-md focus:outline-none 
-                    focus:ring-2 focus:ring-offset-2 focus:ring-pink-400" href="{{ route('password.request') }}">
+                    <a class="underline text-sm text-emerald-600 hover:text-emerald-800 rounded-md focus:outline-none 
+                    focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400" href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
                 @endif
@@ -36,18 +36,18 @@
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
                     <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-pink-700 dark:text-pink-200">{{ __('Remember me') }}</span>
+                    <span class="ms-2 text-sm text-emerald-700 dark:text-emerald-200">{{ __('Remember me') }}</span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 @if (Route::has('register'))
-                    <a class="underline text-sm text-pink-600 hover:text-pink-800 rounded-md focus:outline-none 
-                    focus:ring-2 focus:ring-offset-2 focus:ring-pink-400" href="{{ route('register') }}">
+                    <a class="underline text-sm text-emerald-600 hover:text-emerald-800 rounded-md focus:outline-none 
+                    focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400" href="{{ route('register') }}">
                         {{ __('No account yet? Register here') }}
                     </a>
                 @endif
-                <x-button class="ms-4 bg-pink-600 hover:bg-pink-700 focus:bg-pink-700 text-white font-semibold border-none ring-pink-400">
+                <x-button class="ms-4 bg-emerald-600 hover:bg-emerald-700 focus:bg-emerald-700 text-white font-semibold border-none ring-emerald-400">
                     {{ __('Log in') }}
                 </x-button>
             </div>

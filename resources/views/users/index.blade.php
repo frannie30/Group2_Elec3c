@@ -2,24 +2,28 @@
 
 
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 min-h-screen">
-        <div class="flex justify-start items-center space-x-4 mb-8">
-            <div class="relative">
-                <button class="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50">
-                    <span>Sort By</span>
-                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            </div>
+        <div class="flex flex-wrap items-center gap-4 mb-8">
+            <form method="GET" action="{{ route('users.index') }}" class="flex items-center gap-3">
+                <input type="hidden" name="search" value="{{ request('search', '') }}">
+                <label class="text-sm text-gray-600">Sort</label>
+                <select name="sort" class="border rounded px-3 py-2 bg-white">
+                    <option value="name_asc" {{ (isset($sort) && $sort==='name_asc') ? 'selected' : '' }}>Name (A → Z)</option>
+                    <option value="name_desc" {{ (isset($sort) && $sort==='name_desc') ? 'selected' : '' }}>Name (Z → A)</option>
+                    <option value="newest" {{ (isset($sort) && $sort==='newest') ? 'selected' : '' }}>Newest</option>
+                    <option value="oldest" {{ (isset($sort) && $sort==='oldest') ? 'selected' : '' }}>Oldest</option>
+                    <option value="most_ecospaces" {{ (isset($sort) && $sort==='most_ecospaces') ? 'selected' : '' }}>Most EcoSpaces</option>
+                    <option value="least_ecospaces" {{ (isset($sort) && $sort==='least_ecospaces') ? 'selected' : '' }}>Least EcoSpaces</option>
+                </select>
 
-            <div class="relative">
-                <button class="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50">
-                    <span>Filters</span>
-                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            </div>
+                <label class="text-sm text-gray-600">Filter</label>
+                <select name="has_ecospaces" class="border rounded px-3 py-2 bg-white">
+                    <option value="all" {{ (isset($hasEcospaces) && $hasEcospaces==='all') ? 'selected' : '' }}>All users</option>
+                    <option value="has" {{ (isset($hasEcospaces) && $hasEcospaces==='has') ? 'selected' : '' }}>Has EcoSpaces</option>
+                    <option value="none" {{ (isset($hasEcospaces) && $hasEcospaces==='none') ? 'selected' : '' }}>No EcoSpaces</option>
+                </select>
+
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded">Apply</button>
+            </form>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">

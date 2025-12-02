@@ -6,10 +6,10 @@
 
     <style>
         :root{
-            --brand-green: #F89EA4;
-            --brand-maroon: #C33F64;
-            --brand-bg-admin-main: #FFF5F7;
-            --brand-bg-sidebar: #FFF8FA;
+            --brand-green: #2F9E4A;
+            --brand-maroon: #166534;
+            --brand-bg-admin-main: #E6F7EA;
+            --brand-bg-sidebar: #FFFFFF;
         }
         .font-inter{ font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
         .text-brand-green{ color: var(--brand-green); }
@@ -21,91 +21,11 @@
     </style>
 
     <div class="flex min-h-screen font-inter bg-brand-bg-admin-main">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-brand-bg-sidebar flex flex-col p-6 border-r border-gray-100 shadow-sm">
-            <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 mb-8">
-                <svg class="h-8 w-8 text-brand-maroon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.965 2.214a1 1 0 0 0-1.93 0l-1.33 4.116a1 1 0 0 1-.956.69h-4.33a1 1 0 0 0-.97 1.258l2.25 6.953a1 1 0 0 1-.162.903l-3.32 4.103a1 1 0 0 0 .78 1.637h5.45a1 1 0 0 1 .957-.69l1.33-4.116a1 1 0 0 0-.797-1.37l-3.064-.998 1.41-4.357h2.29a1 1 0 0 1 .956.69l1.33 4.116a1 1 0 0 0 .957.69h5.45a1 1 0 0 0 .78-1.637l-3.32-4.103a1 1 0 0 1-.162-.903l2.25-6.953a1 1 0 0 0-.97-1.258h-4.33a1 1 0 0 1-.956-.69L12.965 2.214z" />
-                </svg>
-                <span class="text-2xl font-bold text-brand-maroon">EcoSpaces</span>
-            </a>
-
-            <div class="mb-8">
-                <h2 class="text-lg font-bold text-brand-maroon">Admin Dashboard</h2>
-                <p class="text-sm text-gray-500">Hi, <span class="font-semibold">{{ Auth::user()->name }}</span></p>
-            </div>
-
-            <nav class="flex-grow">
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                            <span class="font-medium">Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <button id="btn-ecospaces" class="flex items-center justify-between w-full text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
-                            <span class="flex items-center space-x-3">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                                </svg>
-                                <span class="font-medium">Manage Content</span>
-                            </span>
-                        </button>
-                    </li>
-                    <li>
-                        <button id="btn-events" class="flex items-center justify-between w-full text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
-                            <span class="flex items-center space-x-3">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                <span class="font-medium">Manage Events</span>
-                            </span>
-                        </button>
-                    </li>
-                    <li>
-                        <button id="btn-users" class="flex items-center justify-between w-full text-brand-maroon hover:text-brand-green p-2 rounded-lg hover:bg-pink-50 transition-colors">
-                            <span class="flex items-center space-x-3">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"></path>
-                                    <path d="M6 20v-1c0-1.657 3.582-3 6-3s6 1.343 6 3v1"></path>
-                                </svg>
-                                <span class="font-medium">Users</span>
-                            </span>
-                        </button>
-                    </li>
-                </ul>
-            </nav>
-
-            <hr class="my-4 border-gray-200">
-
-            <div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="flex items-center space-x-3 text-gray-700 hover:text-brand-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                            <polyline points="10 17 15 12 10 7"></polyline>
-                            <line x1="15" y1="12" x2="3" y2="12"></line>
-                        </svg>
-                        <span class="font-medium">Log out</span>
-                    </button>
-                </form>
-            </div>
-        </aside>
+        @include('admin._sidebar')
 
         <!-- Main Content -->
         <main class="flex-1 p-8 lg:p-12 overflow-y-auto">
-            <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-6xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-8 w-full mx-auto">
 
                 {{-- Session messages --}}
                 @if (session('success'))
@@ -126,7 +46,7 @@
                         <h1 id="page-title" class="text-3xl font-bold text-gray-900">Archives</h1>
                     </div>
                     <div class="flex gap-3">
-                        <a href="{{ route('create.index') }}" class="bg-brand-maroon text-white px-4 py-2 rounded-lg font-semibold shadow" style="background-color: var(--brand-maroon);">+ Add New EcoSpace</a>
+                        <!-- Actions moved to sidebar dropdown -->
                     </div>
                 </div>
 
@@ -202,11 +122,14 @@
                                             </td>
                                             <td class="px-6 py-4 border-b align-top">
                                                 <div class="flex flex-col items-stretch gap-3">
-                                                    <form method="POST" action="{{ route('admin.ecospaces.restore', $ecospace->ecospaceID) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to restore this ecospace?');">
+                                                    <form method="POST" action="{{ route('admin.ecospaces.restore', $ecospace->ecospaceID) }}" style="display:inline;" data-confirm="Are you sure you want to restore this ecospace?">
                                                         @csrf
                                                         <button type="submit" class="w-full flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-pink-700 transition focus:outline-none">Restore</button>
                                                     </form>
-                                                    <a href="{{ route('admin.ecospaces.confirm-delete', $ecospace->ecospaceID) }}" class="w-full inline-flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold shadow hover:bg-red-200 transition focus:outline-none">Delete</a>
+                                                    <form method="POST" action="{{ route('admin.ecospaces.delete', $ecospace->ecospaceID) }}" data-confirm="Permanently delete this EcoSpace? This cannot be undone.">
+                                                        @csrf
+                                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 admin-btn-negative px-4 py-2 rounded-lg font-semibold shadow">Delete</button>
+                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>
@@ -278,7 +201,10 @@
                                                         @csrf
                                                         <button type="submit" class="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-green-700 transition focus:outline-none">Restore</button>
                                                     </form>
-                                                    <a href="{{ route('admin.events.confirm-delete', $event->eventID) }}" class="w-full inline-flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold shadow hover:bg-red-200 transition focus:outline-none">Delete</a>
+                                                    <form method="POST" action="{{ route('admin.events.delete', $event->eventID) }}" data-confirm="Permanently delete this event? This cannot be undone.">
+                                                        @csrf
+                                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 admin-btn-negative px-4 py-2 rounded-lg font-semibold shadow">Delete</button>
+                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>
@@ -319,7 +245,7 @@
                                                 <td class="px-6 py-4 border-b align-top">
                                                     <div class="flex gap-2">
                                                         @if(auth()->check() && auth()->user()->userTypeID === 1)
-                                                            <form method="POST" action="{{ route('admin.users.restore', $user->id) }}" onsubmit="return confirm('Restore this user account?');">
+                                                            <form method="POST" action="{{ route('admin.users.restore', $user->id) }}" data-confirm="Restore this user account?">
                                                                 @csrf
                                                                 <button type="submit" class="px-3 py-1 rounded-md bg-pink-100 text-pink-800">Restore</button>
                                                             </form>
@@ -372,42 +298,7 @@
                         if (count) count.textContent = (idx + 1) + '/' + images.length;
                     }
 
-                        function showSection(name, pushState = true) {
-                            const pageTitle = document.getElementById('page-title');
-                        const eco = document.getElementById('section-ecospaces');
-                        const evt = document.getElementById('section-events');
-                        const users = document.getElementById('section-users');
-                        const btnEco = document.getElementById('btn-ecospaces');
-                        const btnEvt = document.getElementById('btn-events');
-                        const btnUsers = document.getElementById('btn-users');
-                        eco.classList.add('hidden'); evt.classList.add('hidden'); users.classList.add('hidden');
-                        btnEco.classList.remove('bg-pink-50'); btnEvt.classList.remove('bg-pink-50'); btnUsers.classList.remove('bg-pink-50');
-                        if (name === 'events') {
-                            evt.classList.remove('hidden'); btnEvt.classList.add('bg-pink-50');
-                            if (pageTitle) pageTitle.textContent = 'Event Archives';
-                        } else if (name === 'users') {
-                            users.classList.remove('hidden'); btnUsers.classList.add('bg-pink-50');
-                            if (pageTitle) pageTitle.textContent = 'User Archives';
-                        } else {
-                            eco.classList.remove('hidden'); btnEco.classList.add('bg-pink-50');
-                            if (pageTitle) pageTitle.textContent = 'Ecospace Archives';
-                        }
-                        if (pushState) {
-                            const url = new URL(window.location);
-                            url.searchParams.set('section', name);
-                            window.history.replaceState({}, '', url);
-                        }
-                    }
-
-                    document.getElementById('btn-ecospaces').addEventListener('click', () => showSection('ecospaces', true));
-                    document.getElementById('btn-events').addEventListener('click', () => showSection('events', true));
-                    document.getElementById('btn-users').addEventListener('click', () => showSection('users', true));
-
-                    (function(){
-                        const params = new URLSearchParams(window.location.search);
-                        const section = params.get('section') || 'ecospaces';
-                        showSection(section, false);
-                    })();
+                    // Page now uses the shared sidebar include. Keep only carousel helper functions.
                 </script>
 
             </div>

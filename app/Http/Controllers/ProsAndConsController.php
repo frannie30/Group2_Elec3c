@@ -45,7 +45,7 @@ class ProsAndConsController extends Controller
             'dateUpdated' => now(),
         ]);
 
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con submitted.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con submitted successfully.');
     }
 
     /**
@@ -85,7 +85,7 @@ class ProsAndConsController extends Controller
         $pc->save();
 
         $ecospace = Ecospace::findOrFail($ecospaceId);
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con updated.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con updated successfully.');
     }
 
     /**
@@ -102,6 +102,6 @@ class ProsAndConsController extends Controller
         $pc->delete();
 
         $ecospace = Ecospace::findOrFail($ecospaceId);
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con deleted.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Pro/Con deleted successfully.');
     }
 }

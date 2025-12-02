@@ -26,22 +26,13 @@ Route::get('/register', function () {
 })->name('register');
 
 
-// Public users listing
-Route::get('/users', [UserController::class, 'index'])->name('users.index');
-
 // Public dashboard showing approved ecospaces (accessible to guests)
 Route::get('/dashboard', [EcospaceController::class, 'dashboard'])->name('dashboard');
 
 // Public page that lists all ecospaces (separate from the dashboard)
-Route::get('/ecospaces', [EcospaceController::class, 'all'])->name('ecospaces.index');
-
-// Public events listing and full listing (preview at /events, full at /events/all)
 Route::get('/events', [EventController::class, 'index'])->name('events.index');
-Route::get('/events/all', [EventController::class, 'all'])->name('events.all');
-// Short redirect for convenience: /all -> /events/all
-Route::get('/all', function () {
-    return redirect()->route('events.all');
-})->name('events.all.short');
+
+
 
 Route::middleware([
     'auth:sanctum',
@@ -50,6 +41,17 @@ Route::middleware([
 ])->group(function () {
 
 
+// Public users listing
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+    Route::get('/ecospaces', [EcospaceController::class, 'all'])->name('ecospaces.index');
+
+// Public events listing and full listing (preview at /events, full at /events/all)
+Route::get('/events/all', [EventController::class, 'all'])->name('events.all');
+// Short redirect for convenience: /all -> /events/all
+Route::get('/all', function () {
+    return redirect()->route('events.all');
+})->name('events.all.short');
     // EcoSpace-facing (user)
     Route::get('/ecospace', [EcospaceController::class, 'showEcospace'])->name('ecospace');
     Route::get('/submitecospace', [EcospaceController::class, 'submitEcospace'])->name('submitecospace');
@@ -59,6 +61,9 @@ Route::middleware([
     Route::get('/submitevent', [EventController::class, 'submitEvent'])->name('submitevent');
     Route::post('/events/store', [EventController::class, 'store'])->name('events.store');
     Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show');
+
+    // Authenticated user's events listing (owners and regular users)
+    Route::get('/my/events', [EventController::class, 'myEvents'])->name('my.events');
 
     // Owner edit routes for ecospaces and events (accessible to the owner user)
     Route::get('/user/ecospaces/{id}/edit', [EcospaceController::class, 'editOwner'])->name('user.ecospaces.edit');
@@ -107,10 +112,22 @@ Route::middleware([
 
     // Admin-only ecospace management
     Route::middleware(CheckRole::class)->group(function () {
+        // Admin preview routes (controller methods) — use controller methods
+        // so these can be promoted to full admin routes later.
+        Route::get('/admin/ecospaces', [EcospaceController::class, 'adminEcospaces'])->name('admin.ecospaces');
+        Route::get('/admin/events', [EventController::class, 'adminEvents'])->name('admin.events');
+        // Separated admin create & archive pages
+        Route::get('/admin/ecospaces/create', [EcospaceController::class, 'adminEcospacesCreate'])->name('admin.ecospaces.create');
+        Route::get('/admin/ecospaces/archives', [EcospaceController::class, 'adminEcospacesArchives'])->name('admin.ecospaces.archives');
+        Route::get('/admin/events/create', [EventController::class, 'adminEventsCreate'])->name('admin.events.create');
+        Route::get('/admin/events/archives', [EventController::class, 'adminEventsArchives'])->name('admin.events.archives');
+
         Route::get('/create', [EcospaceController::class, 'create'])->name('create.index');
         Route::get('/index', [EcospaceController::class, 'index'])->name('index.index');
 
         // Admin user management (archive)
+        Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'adminIndex'])->name('admin.users');
+        Route::get('/admin/users/archives', [\App\Http\Controllers\UserController::class, 'archives'])->name('admin.users.archives');
         Route::post('/admin/users/{id}/archive', [\App\Http\Controllers\UserController::class, 'archive'])->name('admin.users.archive');
         Route::post('/admin/users/{id}/restore', [\App\Http\Controllers\UserController::class, 'restore'])->name('admin.users.restore');
 

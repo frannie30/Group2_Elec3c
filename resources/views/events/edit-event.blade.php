@@ -6,7 +6,7 @@
             <div class="bg-white/90 backdrop-blur-lg shadow-2xl sm:rounded-2xl p-10 border border-pink-200">
                 <h2 class="text-3xl font-extrabold mb-8 text-center text-pink-700">Edit Event</h2>
 
-                <form method="POST" action="{{ route('user.events.update', $event->eventID) }}" enctype="multipart/form-data" onsubmit="return confirm('Save changes to this event?');">
+                <form method="POST" action="{{ route('user.events.update', $event->eventID) }}" enctype="multipart/form-data" data-confirm="Save changes to this event?" data-composite-address data-address-target="eventAdd">
                     @csrf
                     @method('PUT')
 
@@ -35,7 +35,45 @@
                         </div>
                         <div>
                             <label for="eventAdd" class="block text-pink-800 font-semibold mb-2">Address</label>
-                            <input type="text" id="eventAdd" name="eventAdd" value="{{ old('eventAdd', $event->eventAdd) }}" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50">
+                            @php
+                                $__full_addr = old('eventAdd', $event->eventAdd ?? '');
+                                $__parts = array_map('trim', explode(',', $__full_addr));
+                                $__len = count($__parts);
+                                if ($__len > 2) {
+                                    $__address_line = implode(', ', array_slice($__parts, 0, $__len - 2));
+                                    $__barangay = $__parts[$__len - 2] ?? '';
+                                } else {
+                                    $__address_line = $__parts[0] ?? '';
+                                    $__barangay = $__parts[1] ?? '';
+                                }
+                            @endphp
+
+                            <input type="text" data-address-line id="event_address_line" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50" placeholder="Street, building, number" value="{{ $__address_line }}" />
+
+                            <select data-barangay id="event_barangay" class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 bg-pink-50">
+                                <option value="" disabled {{ $__barangay=='' ? 'selected' : '' }}>-- Select Barangay (Makati) --</option>
+                                <option {{ $__barangay=='Bangkal' ? 'selected' : '' }}>Bangkal</option>
+                                <option {{ $__barangay=='Bel-Air' ? 'selected' : '' }}>Bel-Air</option>
+                                <option {{ $__barangay=='Carmona' ? 'selected' : '' }}>Carmona</option>
+                                <option {{ $__barangay=='Dasmariñas' ? 'selected' : '' }}>Dasmariñas</option>
+                                <option {{ $__barangay=='Forbes Park' ? 'selected' : '' }}>Forbes Park</option>
+                                <option {{ $__barangay=='Guadalupe Nuevo' ? 'selected' : '' }}>Guadalupe Nuevo</option>
+                                <option {{ $__barangay=='Guadalupe Viejo' ? 'selected' : '' }}>Guadalupe Viejo</option>
+                                <option {{ $__barangay=='Palanan' ? 'selected' : '' }}>Palanan</option>
+                                <option {{ $__barangay=='Pembo' ? 'selected' : '' }}>Pembo</option>
+                                <option {{ $__barangay=='Pitogo' ? 'selected' : '' }}>Pitogo</option>
+                                <option {{ $__barangay=='Poblacion' ? 'selected' : '' }}>Poblacion</option>
+                                <option {{ $__barangay=='San Antonio' ? 'selected' : '' }}>San Antonio</option>
+                                <option {{ $__barangay=='San Isidro' ? 'selected' : '' }}>San Isidro</option>
+                                <option {{ $__barangay=='San Lorenzo' ? 'selected' : '' }}>San Lorenzo</option>
+                                <option {{ $__barangay=='San Miguel' ? 'selected' : '' }}>San Miguel</option>
+                                <option {{ $__barangay=='Valenzuela' ? 'selected' : '' }}>Valenzuela</option>
+                                <option {{ $__barangay=='Tejeros' ? 'selected' : '' }}>Tejeros</option>
+                                <option {{ $__barangay=='Urdaneta' ? 'selected' : '' }}>Urdaneta</option>
+                            </select>
+
+                            <div class="text-sm text-pink-600">City: <strong>Makati</strong>, Region: <strong>Metro Manila</strong></div>
+                            <input type="hidden" name="eventAdd" value="{{ $__full_addr }}" />
                             @error('eventAdd')<div class="text-red-500 mt-2 text-sm">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -80,10 +118,26 @@
 
                     <div class="flex justify-center gap-4 mt-8">
                         <button type="submit" class="bg-pink-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-pink-700 transition">Save Changes</button>
-                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-pink-800 px-8 py-3 rounded-xl font-bold">Cancel</a>
+                        <a href="{{ route('users.show', auth()->id()) }}" class="bg-gray-300 text-pink-800 px-8 py-3 rounded-xl font-bold" data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const dt = document.getElementById('eventDate');
+    if (!dt) return;
+    function setMin(){
+        const now = new Date(); now.setSeconds(0,0);
+        const pad = (n)=>String(n).padStart(2,'0');
+        const local = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+        dt.min = local;
+    }
+    setMin(); setInterval(setMin, 60000);
+    const form = dt.closest('form'); if (!form) return;
+    form.addEventListener('submit', function(e){ if (!dt.value) return; const selected = new Date(dt.value); if (selected < new Date()) { e.preventDefault(); alert('Please choose a date and time that is not in the past.'); } });
+});
+</script>

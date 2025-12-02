@@ -37,6 +37,7 @@ class EcospaceController extends Controller
     {
         $search = $request->input('search');
 
+
         // Build base query for approved ecospaces
         $baseQuery = Ecospace::with(['images', 'priceTier'])
             ->where('statusID', 2)
@@ -76,7 +77,8 @@ class EcospaceController extends Controller
         Log::debug('EcospaceController@all query', $request->query());
 
         $search = $request->input('search');
-        $sort = $request->input('sort', 'newest');
+        // Use same sort keys as events: date_desc (default), date_asc, name_asc, name_desc
+        $sort = $request->input('sort', 'date_desc');
         $hasReviews = $request->input('has_reviews', 'all');
         // support multiple star filters (e.g. stars[]=5&stars[]=4) and '0' for no reviews
         $stars = $request->input('stars', []);
@@ -109,15 +111,18 @@ class EcospaceController extends Controller
         // because the rounded average and absence-of-reviews are easier to evaluate in PHP
         // given the flexible set of requested values.
 
-        // Sorting options:
-        // - a-z / z-a => ecospaceName asc/desc
+        // Sorting options (match `events.all` keys):
+        // - date_desc / date_asc => dateCreated desc/asc
+        // - name_asc / name_desc => ecospaceName asc/desc
         // - highest / lowest => average review rating desc/asc
-        // - newest => dateCreated desc
         switch ($sort) {
-            case 'a-z':
+            case 'date_asc':
+                $baseQuery = $baseQuery->orderBy('dateCreated', 'asc');
+                break;
+            case 'name_asc':
                 $baseQuery = $baseQuery->orderBy('ecospaceName', 'asc');
                 break;
-            case 'z-a':
+            case 'name_desc':
                 $baseQuery = $baseQuery->orderBy('ecospaceName', 'desc');
                 break;
             case 'highest':
@@ -131,9 +136,9 @@ class EcospaceController extends Controller
                 break;
         }
 
-        // If no special post-filters (multiple stars or open_now) are requested,
+        // If no special post-filters (multiple stars) are requested,
         // we can paginate directly using the query builder.
-        $needsPostFilter = $openNow || (is_array($stars) && count($stars) > 0 && !(count($stars) === 1 && in_array('', $stars, true)));
+        $needsPostFilter = (is_array($stars) && count($stars) > 0 && !(count($stars) === 1 && in_array('', $stars, true)));
 
         if (!$needsPostFilter) {
             $ecospaces = $baseQuery->paginate(12)->withQueryString();
@@ -144,8 +149,8 @@ class EcospaceController extends Controller
             // Normalize star filters to a set of integers (allowed 0..5)
             $starSet = collect($stars)->filter(fn($s) => in_array((string)$s, ['0','1','2','3','4','5'], true))->map(fn($s) => (int)$s)->unique()->values()->all();
 
-            $filtered = $all->filter(function ($ecospace) use ($starSet, $openNow) {
-                // 1) Star filtering
+            $filtered = $all->filter(function ($ecospace) use ($starSet) {
+                // Star filtering only (rounded average or no reviews)
                 if (!empty($starSet)) {
                     $rounded = null;
                     if (isset($ecospace->reviews_avg_rating) && $ecospace->reviews_avg_rating !== null) {
@@ -164,18 +169,6 @@ class EcospaceController extends Controller
                     }
 
                     if (!$matchStars) return false;
-                }
-
-                // 2) Open-now filtering
-                if ($openNow) {
-                    try {
-                        $status = $this->computeOpenStatus($ecospace);
-                        if (!isset($status['isOpenNow']) || $status['isOpenNow'] !== true) {
-                            return false;
-                        }
-                    } catch (\Throwable $e) {
-                        return false;
-                    }
                 }
 
                 return true;
@@ -201,9 +194,15 @@ class EcospaceController extends Controller
             $bookmarkedEcospaces = EsBookmark::where('userID', auth()->id())->pluck('ecospaceID')->toArray();
         }
 
+        $priceTiers = PriceTier::orderBy('pricetier')->get();
+
         return view('ecospaces.index', [
             'ecospaces' => $ecospaces,
             'search' => $search,
+            'sort' => $sort,
+            'stars' => $stars,
+            'priceTier' => $request->input('price_tier'),
+            'priceTiers' => $priceTiers,
             'bookmarkedEvents' => $bookmarkedEvents,
             'bookmarkedEcospaces' => $bookmarkedEcospaces,
         ]);
@@ -504,18 +503,19 @@ class EcospaceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'ecospaceName' => 'required|string|max:191',
-            'ecospaceAdd' => 'nullable|string|max:255',
-            'ecospaceDesc' => 'nullable|string|max:1000',
+            'ecospaceName' => 'required|string|min:5|max:191',
+            'ecospaceAdd' => 'nullable|string|min:5|max:255',
+            'ecospaceDesc' => 'nullable|string|min:5|max:1000',
             // Price tier must exist in tbl_pricetiers
             'priceTierID' => 'required|integer|exists:tbl_pricetiers,priceTierID',
             // Images are optional; each must be a valid image under 5MB
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'openingHours' => 'nullable|string|max:50',
-            'closingHours' => 'nullable|string|max:50',
-            'daysOpened' => 'nullable|string|max:255',
         ]);
+           // Removed openingHours, closingHours, and daysOpened from validation
+           // 'openingHours' => 'nullable|string|max:50',
+           // 'closingHours' => 'nullable|string|max:50',
+           // 'daysOpened' => 'nullable|string|max:255',
 
         $ecospace = Ecospace::create([
             'ecospaceName' => $request->ecospaceName,
@@ -525,9 +525,10 @@ class EcospaceController extends Controller
             // Force newly-submitted ecospaces to pending
             'statusID' => 1,
             'priceTierID' => $request->priceTierID,
-            'openingHours' => $request->openingHours,
-            'closingHours' => $request->closingHours,
-            'daysOpened' => $request->daysOpened,
+               // Removed openingHours, closingHours, and daysOpened from creation
+               // 'openingHours' => $request->openingHours,
+               // 'closingHours' => $request->closingHours,
+               // 'daysOpened' => $request->daysOpened,
             'dateCreated' => Carbon::now(),
         ]);
 
@@ -564,7 +565,7 @@ class EcospaceController extends Controller
             report($e);
         }
 
-        return redirect()->route('dashboard')->with('success', 'Ecospace submitted successfully.');
+        return redirect()->route('dashboard')->with('success', 'EcoSpace created successfully.');
     }
 
     // Admin-facing: list pending ecospaces
@@ -597,7 +598,8 @@ class EcospaceController extends Controller
         // Include users listing for admin index
         $users = User::orderBy('name')->paginate(10, ['*'], 'users_page');
 
-        return view('admin.index', compact('ecospaces', 'events', 'users'));
+        // The `admin.index` view was removed — return the admin ecospaces listing instead
+        return view('admin.ecospaces', compact('ecospaces'));
     }
 
     public function archives()
@@ -619,11 +621,44 @@ class EcospaceController extends Controller
         return view('admin.archives', compact('ecospaces', 'events', 'users'));
     }
 
+    /**
+     * Admin preview: standalone ecospaces admin page (for UI preview)
+     */
+    public function adminEcospaces()
+    {
+        $ecospaces = Ecospace::orderByDesc('dateCreated')->paginate(5);
+        return view('admin.ecospaces', compact('ecospaces'));
+    }
+
+    /**
+     * Admin-facing: show pending ecospaces only (create page split)
+     */
+    public function adminEcospacesCreate()
+    {
+        $ecospaces = Ecospace::where('statusID', 1)
+            ->with(['user', 'status', 'priceTier'])
+            ->paginate(5);
+        return view('admin.ecospaces_create', compact('ecospaces'));
+    }
+
+    /**
+     * Admin-facing: show archived ecospaces only (archives split)
+     */
+    public function adminEcospacesArchives()
+    {
+        $ecospaces = Ecospace::onlyTrashed()
+            ->where('statusID', 3)
+            ->with(['user', 'status', 'priceTier'])
+            ->paginate(5);
+
+        return view('admin.ecospaces_archives', compact('ecospaces'));
+    }
+
     public function approve($id)
     {
         // Set to approved
         Ecospace::where('ecospaceID', $id)->update(['statusID' => 2]);
-        return redirect()->back()->with('success', 'Ecospace approved!');
+        return redirect()->route('admin.ecospaces')->with('success', 'EcoSpace approved successfully.');
     }
 
     public function remove($id)
@@ -632,7 +667,19 @@ class EcospaceController extends Controller
         $ecospace = Ecospace::findOrFail($id);
         $ecospace->update(['statusID' => 3]);
         $ecospace->delete(); // soft delete (sets deleted_at)
-        return redirect()->back()->with('success', 'Ecospace declined and archived.');
+        // Revert the owner's userTypeID back to 2 (regular user) when their ecospace is declined
+        try {
+            $owner = User::find($ecospace->userID);
+            if ($owner) {
+                $owner->userTypeID = 2;
+                $owner->save();
+            }
+        } catch (\Throwable $e) {
+            // Log but don't interrupt the flow
+            report($e);
+        }
+
+        return redirect()->route('admin.ecospaces')->with('success', 'EcoSpace archived successfully.');
     }
 
     /**
@@ -642,7 +689,7 @@ class EcospaceController extends Controller
     {
         $ecospace = Ecospace::findOrFail($id);
         $title = 'Confirm Remove EcoSpace';
-        $message = 'Are you sure you want to remove the ecospace "' . $ecospace->ecospaceName . '"? This will archive the ecospace (soft-delete).';
+        $message = 'Are you sure you want to remove the EcoSpace "' . $ecospace->ecospaceName . '"? This will archive the EcoSpace (soft-delete).';
         $actionRoute = route('admin.ecospace.remove', $id);
         $cancelUrl = url()->previous() ?: route('index.index');
 
@@ -657,8 +704,8 @@ class EcospaceController extends Controller
         // Mark as approved when restored
         $ecospace->update(['statusID' => 2]);
 
-        return redirect()->route('index.index')
-                         ->with('success', 'Ecospace restored and approved successfully!');
+        return redirect()->route('admin.ecospaces')
+                 ->with('success', 'EcoSpace restored successfully.');
     }
 
     public function delete($id)
@@ -666,8 +713,8 @@ class EcospaceController extends Controller
         $ecospace = Ecospace::withTrashed()->findOrFail($id);
         $ecospace->forceDelete();
 
-        return redirect()->route('archives.index')
-                         ->with('success', 'Ecospace permanently deleted.');
+        return redirect()->route('admin.ecospaces.archives')
+                 ->with('success', 'EcoSpace permanently deleted.');
     }
 
     /**
@@ -677,7 +724,7 @@ class EcospaceController extends Controller
     {
         $ecospace = Ecospace::withTrashed()->findOrFail($id);
         $title = 'Confirm Permanent Delete';
-        $message = 'Are you sure you want to permanently delete the ecospace "' . $ecospace->ecospaceName . '"? This cannot be undone.';
+        $message = 'Are you sure you want to permanently delete the EcoSpace "' . $ecospace->ecospaceName . '"? This cannot be undone.';
         $actionRoute = route('admin.ecospaces.delete', $id);
         $cancelUrl = url()->previous() ?: route('archives.index');
 
@@ -711,9 +758,7 @@ class EcospaceController extends Controller
             'ecospaceAdd' => 'nullable|string|max:255',
             'ecospaceDesc' => 'nullable|string|max:1000',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
-            'openingHours' => 'nullable|string|max:50',
-            'closingHours' => 'nullable|string|max:50',
-            'daysOpened' => 'nullable|string|max:255',
+            // removed opening/closing/days from update validation
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images_to_remove' => 'nullable|array',
@@ -728,9 +773,7 @@ class EcospaceController extends Controller
             'ecospaceAdd' => $request->ecospaceAdd,
             'ecospaceDesc' => $request->ecospaceDesc,
             'priceTierID' => $request->priceTierID,
-            'openingHours' => $request->openingHours,
-            'closingHours' => $request->closingHours,
-            'daysOpened' => $request->daysOpened,
+            // openingHours/closingHours/daysOpened removed from update
         ]);
 
         // Remove selected images
@@ -765,7 +808,8 @@ class EcospaceController extends Controller
             }
         }
 
-        return redirect()->route('index.index')->with('success', 'Ecospace updated successfully.');
+        // After admin edit, redirect back to the admin ecospaces listing
+        return redirect()->route('admin.ecospaces')->with('success', 'EcoSpace updated successfully.');
     }
 
     /**
@@ -778,9 +822,7 @@ class EcospaceController extends Controller
             'ecospaceAdd' => 'nullable|string|max:255',
             'ecospaceDesc' => 'nullable|string|max:1000',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
-            'openingHours' => 'nullable|string|max:50',
-            'closingHours' => 'nullable|string|max:50',
-            'daysOpened' => 'nullable|string|max:255',
+            // removed opening/closing/days from owner update validation
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images_to_remove' => 'nullable|array',
@@ -798,9 +840,7 @@ class EcospaceController extends Controller
             'ecospaceAdd' => $request->ecospaceAdd,
             'ecospaceDesc' => $request->ecospaceDesc,
             'priceTierID' => $request->priceTierID,
-            'openingHours' => $request->openingHours,
-            'closingHours' => $request->closingHours,
-            'daysOpened' => $request->daysOpened,
+            // openingHours/closingHours/daysOpened removed from owner update
         ]);
 
         // Remove selected images
@@ -834,6 +874,7 @@ class EcospaceController extends Controller
             }
         }
 
-        return redirect()->route('ecospaces.show', auth()->id())->with('success', 'Ecospace updated successfully.');
+        // Redirect owner to their profile page after updating their ecospace
+        return redirect()->route('users.show', auth()->id())->with('success', 'EcoSpace updated successfully.');
     }
 }

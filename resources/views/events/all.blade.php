@@ -19,6 +19,48 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl md:text-4xl font-bold text-[color:var(--brand-maroon)]">All Events</h2>
+
+                    {{-- Sort & Filters --}}
+                    <div class="mb-6">
+                        <form method="GET" action="{{ route('events.all') }}" class="flex flex-wrap items-center gap-3">
+                            <input type="hidden" name="search" value="{{ $search ?? request('search', '') }}">
+
+                            <label class="text-sm text-gray-600">Sort</label>
+                            <select name="sort" class="border rounded px-3 py-2 bg-white">
+                                <option value="date_desc" {{ (isset($sort) && $sort==='date_desc') ? 'selected' : '' }}>Date (newest)</option>
+                                <option value="date_asc" {{ (isset($sort) && $sort==='date_asc') ? 'selected' : '' }}>Date (oldest)</option>
+                                <option value="name_asc" {{ (isset($sort) && $sort==='name_asc') ? 'selected' : '' }}>Name A → Z</option>
+                                <option value="name_desc" {{ (isset($sort) && $sort==='name_desc') ? 'selected' : '' }}>Name Z → A</option>
+                                <option value="most_attendees" {{ (isset($sort) && $sort==='most_attendees') ? 'selected' : '' }}>Most going</option>
+                                <option value="least_attendees" {{ (isset($sort) && $sort==='least_attendees') ? 'selected' : '' }}>Least going</option>
+                            </select>
+
+                            <label class="text-sm text-gray-600">Type</label>
+                            <select name="event_type" class="border rounded px-3 py-2 bg-white">
+                                <option value="">All types</option>
+                                @foreach(($eventTypes ?? collect()) as $et)
+                                    <option value="{{ $et->eventTypeID }}" {{ (isset($eventType) && $eventType == $et->eventTypeID) ? 'selected' : '' }}>{{ $et->eventTypeName }}</option>
+                                @endforeach
+                            </select>
+
+                            <label class="text-sm text-gray-600">Price</label>
+                            <select name="price_tier" class="border rounded px-3 py-2 bg-white">
+                                <option value="">All prices</option>
+                                @foreach(($priceTiers ?? collect()) as $pt)
+                                    <option value="{{ $pt->priceTierID }}" {{ (isset($priceTier) && $priceTier == $pt->priceTierID) ? 'selected' : '' }}>{{ $pt->pricetier }}</option>
+                                @endforeach
+                            </select>
+
+                            <label class="text-sm text-gray-600">Images</label>
+                            <select name="has_images" class="border rounded px-3 py-2 bg-white">
+                                <option value="all" {{ (isset($hasImages) && $hasImages==='all') ? 'selected' : '' }}>All</option>
+                                <option value="has" {{ (isset($hasImages) && $hasImages==='has') ? 'selected' : '' }}>Has images</option>
+                                <option value="none" {{ (isset($hasImages) && $hasImages==='none') ? 'selected' : '' }}>No images</option>
+                            </select>
+
+                            <button type="submit" class="px-4 py-2 bg-magenta-secondary text-white rounded">Apply</button>
+                        </form>
+                    </div>
                     <a href="{{ route('events.index') }}" class="text-[color:var(--brand-green)] font-semibold hover:underline text-lg">Back to preview &gt;</a>
                 </div>
 

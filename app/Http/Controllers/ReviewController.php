@@ -71,7 +71,7 @@ class ReviewController extends Controller
             }
         }
 
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review submitted.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review submitted successfully.');
     }
 
     /**
@@ -148,7 +148,7 @@ class ReviewController extends Controller
             }
         }
 
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review updated.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review updated successfully.');
     }
 
     /**
@@ -171,6 +171,6 @@ class ReviewController extends Controller
 
         $review->delete();
 
-        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review deleted.');
+        return redirect()->route('ecospace', ['name' => $ecospace->ecospaceName])->with('success', 'Review deleted successfully.');
     }
 }
