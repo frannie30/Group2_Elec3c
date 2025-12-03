@@ -5,6 +5,7 @@ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\EcospaceController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\GuestlistController;
 use App\Http\Controllers\ReviewController;
@@ -28,6 +29,9 @@ Route::get('/register', function () {
 
 // Public dashboard showing approved ecospaces (accessible to guests)
 Route::get('/dashboard', [EcospaceController::class, 'dashboard'])->name('dashboard');
+
+// Public 'Our Mission' page — accessible to guests and authenticated users
+Route::get('/our-mission', [PageController::class, 'mission'])->name('mission');
 
 // Public page that lists all ecospaces (separate from the dashboard)
 Route::get('/events', [EventController::class, 'index'])->name('events.index');

@@ -31,6 +31,7 @@
                     @else
                         <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Dashboard') }}</x-nav-link>
                         <x-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Events') }}</x-nav-link>
+                        <x-nav-link href="{{ route('mission') }}" :active="request()->routeIs('mission')" class="text-gray-600 hover:text-dark-green font-medium">{{ __('Our Mission') }}</x-nav-link>
                         @auth
                             {{-- 'My Events' link removed per request --}}
                         @endauth
@@ -155,6 +156,7 @@
             <div class="pt-4 pb-3 space-y-2 px-4">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('events.index') }}" :active="request()->routeIs('events.index')">{{ __('Events') }}</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('mission') }}" :active="request()->routeIs('mission')">{{ __('Our Mission') }}</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('users.index') }}" data-requires-login="true" :active="request()->routeIs('users.index')">{{ __('Users') }}</x-responsive-nav-link>
             @if(!(Auth::user() && Auth::user()->userTypeID === 1))
             <div class="px-2">
