@@ -1,61 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Velasco LabAct (Group2_Elec3c)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel application for managing events, eco-spaces, reviews, and user profiles used by the Velasco lab front-end project.
 
-## About Laravel
+This repository contains the application code (Laravel 10+), frontend assets built with Vite/Tailwind, and tests.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Quick Start
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Prerequisites:
+- PHP 8.1+ (matching project's platform requirements)
+- Composer
+- Node.js 16+ and npm (or pnpm)
+- A running database (MySQL, PostgreSQL, or SQLite)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Basic setup:
 
-## Learning Laravel
+```bash
+# install PHP dependencies
+composer install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# copy env and generate app key
+cp .env.example .env
+php artisan key:generate
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+# configure .env with DB credentials
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# run migrations and (optional) seeders
+php artisan migrate --seed
 
-## Laravel Sponsors
+# install frontend dependencies and build assets (development):
+npm install
+npm run dev
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# or build for production
+npm run build
 
-### Premium Partners
+# serve the app locally
+php artisan serve
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Notes:
+- If you use Docker, you can adapt the commands above to your containers.
+- To serve storage assets, run `php artisan storage:link` if required.
+
+## Running Tests
+
+Run the automated test suite with:
+
+```bash
+php artisan test
+```
+
+## Common Commands
+
+- `php artisan migrate` — run database migrations
+- `php artisan migrate:rollback` — rollback last migration batch
+- `php artisan db:seed` — run seeders
+- `npm run dev` — start Vite dev server
+- `npm run build` — build production assets
+
+## Project Structure (high level)
+
+- `app/Models` — Eloquent models (Event, EcoSpace, Review, User, etc.)
+- `app/Http/Controllers` — HTTP controllers
+- `resources/views` — Blade templates
+- `resources/js` & `resources/css` — front-end source (Vite + Tailwind)
+- `database/migrations` — migrations
+- `tests` — feature and unit tests
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Fork the repository and create a feature branch.
+2. Run the test suite and ensure linting passes.
+3. Open a pull request with a clear description of changes.
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Please follow PSR-12 and existing code style when contributing.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project uses the MIT license. See `LICENSE` for details (if present).
+
+## Maintainers / Contact
+
+If you need help, open an issue in this repository or contact the project maintainer.
+
+---
+If you'd like, I can also add a short `CONTRIBUTING.md` and a minimal `LICENSE` file next.
