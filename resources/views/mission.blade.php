@@ -8,6 +8,10 @@
             --muted-pink-copy: #7B5A61;
             --card-border-pink: rgba(247,183,200,0.18);
             --card-shadow: 0 10px 30px rgba(33,37,41,0.06);
+            --orange-sdg: #F2BA90;
+            --green-sdg: #5CA748;
+
+
         }
 
         body {
@@ -89,11 +93,22 @@
             box-shadow: 0 8px 20px rgba(9,30,66,0.04);
         }
 
-        .sdg-badge {
-            width: 56px;
+        .sdg-badge2 {
+            width: 16px;
             height: 56px;
             border-radius: 10px;
-            background: var(--brand-green-light);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+                .sdg-badge {
+            width: 200px;
+            height: 56px;
+            border-radius: 10px;
             color: #fff;
             display: flex;
             align-items: center;
@@ -151,30 +166,28 @@
                     Our Mission
                 </h1>
 
-                <p class="text-xl text-green-700 font-light mb-10">
-                    We help foster sustainable, community-first green spaces —
-                    connecting people, events, and ideas to build healthier,
-                    happier neighborhoods.
+                <p class="text-xl text-magenta-secondary font-medium mb-10">
+                    To serve as Makati's essential web directory for public green spaces, 
+                    empowering communities to discover, connect, 
+                    and collaborate on projects that promote environmental 
+                    health and local well-being.
                 </p>
 
                 {{-- WHAT WE DO --}}
                 <div class="mission-info text-left">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">What we do</h2>
+                    <h2 class="text-2xl font-bold text-dark-green mb-4">What we do</h2>
 
-                    <p class="text-gray-700 mb-4">
+                    <p class="text-magenta-secondary mb-4">
                         EcoSpaces builds a local ecosystem of eco-friendly places and events —
                         helping residents discover nearby parks, botanical gardens,
-                        makerspaces, and sustainability-focused meetups. Our mission is to
-                        nurture collaboration and environmental stewardship by making it
-                        simple to find, share, and support green initiatives in your
-                        community.
+                        makerspaces, and sustainability-focused meetups. 
                     </p>
 
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">How we help</h3>
+                    <h3 class="text-lg font-semibold text-dark-green mb-2">How we help</h3>
 
-                    <ul class="list-disc list-inside text-gray-700 space-y-2 mb-6">
+                    <ul class="list-disc list-inside text-magenta-secondary space-y-2 mb-6">
                         <li>Curate and list sustainable spaces and community-driven events.</li>
-                        <li>Enable residents to leave reviews and ratings for transparency.</li>
+                        <li>Allow the community to leave reviews and ratings for transparency.</li>
                         <li>Provide tools for organizers to host accessible green initiatives.</li>
                     </ul>
 
@@ -226,30 +239,6 @@
 
                 </div>
 
-                {{-- EXECUTIVE SUMMARY --}}
-                <div class="max-w-5xl mx-auto mt-12 px-4">
-                    <section class="panel">
-                        <h4>Executive Summary</h4>
-
-                        <p>
-                            EcoSpaces is a comprehensive web-based directory that reconnects
-                            urban residents with green spaces in Makati. In an increasingly
-                            urbanized environment, many people lack access to nature and
-                            meaningful community spaces. EcoSpaces addresses this by helping
-                            residents discover parks, gardens, urban farms, and eco-friendly
-                            venues — all while engaging in community-building activities such
-                            as workshops, planting drives, and clean-up initiatives.
-                        </p>
-
-                        <p>
-                            Through location-based discovery, event participation, reviews,
-                            and community input, the platform builds a sustainable ecosystem
-                            that promotes environmental stewardship and enhances mental
-                            well-being for residents of all ages.
-                        </p>
-                    </section>
-                </div>
-
                 {{-- SDG SUMMARY --}}
                 <div class="mt-14 text-center">
                     <h3 class="text-2xl font-extrabold text-dark-green mb-2">
@@ -257,23 +246,22 @@
                     </h3>
 
                     <p class="muted-copy max-w-3xl mx-auto leading-relaxed">
-                        EcoSpaces is committed to advancing the United Nations SDGs through
-                        community engagement and sustainable technology. We focus on the two
-                        goals where we can create the strongest positive impact.
-                        EcoSpaces aligns primarily with SDG 11 — Sustainable Cities &
-                        Communities and SDG 3 — Good Health & Well-Being.
+                        EcoSpaces is committed to advancing the United Nations 
+                        Sustainable Development Goals through technology and 
+                        community engagement. We focus on two key areas where 
+                        we can make the biggest impact.
                     </p>
 
                     <div class="sdg-grid mt-6">
 
                         <div class="sdg-card">
-                            <div class="sdg-badge">11</div>
+                            <div class="sdg-badge bg-orange-500 text-white">11</div>
                             <div>
                                 <div class="font-semibold text-green-900 text-lg">
                                     Sustainable Cities & Communities
                                 </div>
                                 <div class="text-sm text-gray-700 mb-1">
-                                    Promote accessible green areas & resilient urban design.
+                                    Make cities and human settlements inclusive, safe, resilient and sustainable
                                 </div>
                                 <div class="text-sm text-gray-600 leading-relaxed">
                                     EcoSpaces supports equitable access to safe, inclusive,
@@ -285,14 +273,13 @@
                         </div>
 
                         <div class="sdg-card">
-                            <div class="sdg-badge">3</div>
+                            <div class="sdg-badge bg-light-green text-white">3</div>
                             <div>
                                 <div class="font-semibold text-green-900 text-lg">
                                     Good Health & Well-being
                                 </div>
                                 <div class="text-sm text-gray-700 mb-1">
-                                    Encourage outdoor activity & mental wellness through
-                                    nature access.
+                                    Ensure healthy lives and promote well-being for all at all ages
                                 </div>
                                 <div class="text-sm text-gray-600 leading-relaxed">
                                     Access to nature helps reduce stress, anxiety, and
@@ -309,13 +296,15 @@
 <div class="max-w-5xl mx-auto mt-14 px-4">
     <section class="panel mb-6">
 
-       <h4 class="mb-3">Sustainable Development Goals (SDG) Alignment</h4>
+       <h4 class="mb-3">Creating Lasting Impact</h4>
 
 <p class="mt-3 mx-auto max-w-3xl text-center text-gray-700 leading-relaxed">
-    By integrating space discovery, event participation, and community involvement,
-    EcoSpaces empowers residents to take part in sustainable action while improving
-    their own well-being. These efforts contribute to long-term resilience and
-    healthier, greener urban communities across Makati.
+    By connecting people with nature and sustainable practices, 
+    EcoSpaces helps build resilient communities that prioritize 
+    both environmental health and human well-being. Every green 
+    space discovered, every community event attended, and every 
+    sustainable practice adopted contributes to a more sustainable 
+    future for Makati and beyond.
 </p>
 
 
@@ -324,6 +313,106 @@
 
             </div>
         </section>
+
+        <hr class="w-80 border-magenta-secondary my-6 mx-auto">
+
+{{-- MEET THE DEVELOPMENT TEAM SECTION --}}
+<section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-seiun-sky">
+    <div class="max-w-4xl mx-auto text-center mb-12">
+        
+        <h2 class="text-4xl font-extrabold text-dark-green mb-4">
+            Meet the Development Team
+        </h2>
+        
+        <p class="text-lg text-magenta-secondary max-w-2xl mx-auto leading-relaxed">
+            We're a passionate team of developers, designers, and environmental advocates
+            dedicated to building technology that makes a positive impact on our communities
+            and planet.
+        </p>
+        
+    </div>
+
+    {{-- TEAM CARDS GRID (4 Columns) --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        {{-- TEAM MEMBER CARD 1 --}}
+        <div class="bg-white p-6 rounded-xl border border-pink-logo/30 shadow-md flex flex-col items-center text-center">
+            
+            {{-- Avatar Placeholder (Using light-green background from mockup) --}}
+            <img src="{{ asset('images/arkin.jpg') }}" alt="Arkin Reinier Aguilar" class="w-24 h-24 rounded-full object-cover border-4 border-light-green mb-4">
+
+            <h3 class="font-bold text-dark-green text-lg">Arkin Reinier Aguilar</h3>
+            <p class="text-sm text-light-green font-semibold mb-3">Front-end Developer & UX/UI Designer</p>
+
+            <p class="text-xs text-magenta-secondary leading-relaxed mb-4">
+                Driving the user experience with clean, accessible interfaces. Committed to translating environmental vision into intuitive digital design.
+            </p>
+
+            {{-- Social Links --}}
+            <div class="flex flex-wrap justify-center gap-2 mt-auto">
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">Email</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">LinkedIn</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">GitHub</a>
+            </div>
+        </div>
+        
+        {{-- TEAM MEMBER CARD 2 --}}
+        <div class="bg-white p-6 rounded-xl border border-pink-logo/30 shadow-md flex flex-col items-center text-center">
+            <img src="{{ asset('images/charlotte.jpg') }}" alt="Charlotte Rhyss Manuel" class="w-24 h-24 rounded-full object-cover border-4 border-light-green mb-4">
+            
+            <h3 class="font-bold text-dark-green text-lg">Charlotte Rhyss Manuel</h3>
+            <p class="text-sm text-light-green font-semibold mb-3">Full-Stack Developer & Documentation</p>
+            
+            <p class="text-xs text-magenta-secondary leading-relaxed mb-4">
+                Adept at bridging the front-end and back-end, focusing on performance, data integrity, and comprehensive documentation for sustainable growth.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-2 mt-auto">
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">Email</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">LinkedIn</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">GitHub</a>
+            </div>
+        </div>
+
+        {{-- TEAM MEMBER CARD 3 --}}
+        <div class="bg-white p-6 rounded-xl border border-pink-logo/30 shadow-md flex flex-col items-center text-center">
+            <img src="{{ asset('images/mielle.jpg') }}" alt="Francesa Mielle Batoon" class="w-24 h-24 rounded-full object-cover border-4 border-light-green mb-4">
+            
+            <h3 class="font-bold text-dark-green text-lg">Francesa Mielle Batoon</h3>
+            <p class="text-sm text-light-green font-semibold mb-3">Front-end Designer</p>
+            
+            <p class="text-xs text-magenta-secondary leading-relaxed mb-4">
+                Focused on the aesthetic and visual branding of EcoSpaces, ensuring the platform's design is modern, engaging, and reflective of our green mission.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-2 mt-auto">
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">Email</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">LinkedIn</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">GitHub</a>
+            </div>
+        </div>
+
+        {{-- TEAM MEMBER CARD 4 (Placeholder) --}}
+        <div class="bg-white p-6 rounded-xl border border-pink-logo/30 shadow-md flex flex-col items-center text-center">
+            <img src="{{ asset('images/bea.jpg') }}" alt="Bea Francesa Velasco" class="w-24 h-24 rounded-full object-cover border-4 border-light-green mb-4">
+            
+            <h3 class="font-bold text-dark-green text-lg">Bea Francesa Velasco</h3>
+            <p class="text-sm text-light-green font-semibold mb-3">Full-Stack Developer</p>
+            
+            <p class="text-xs text-magenta-secondary leading-relaxed mb-4">
+                Specializing in database architecture and backend services. Dedicated to building robust, scalable infrastructure that supports community interaction and resource mapping.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-2 mt-auto">
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">Email</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">LinkedIn</a>
+                <a href="#" class="inline-flex items-center text-sm text-dark-green border border-dark-green px-3 py-1 rounded-full hover:bg-light-green/20 transition">GitHub</a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
     </main>
 
 </x-app-layout>
