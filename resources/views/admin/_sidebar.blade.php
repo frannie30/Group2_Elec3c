@@ -1,15 +1,20 @@
 <aside class="w-64 bg-brand-bg-sidebar flex flex-col p-6 border-r border-gray-100 shadow-sm">
     @include('admin._button-styles')
-    <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 mb-6">
-        <svg class="h-8 w-8 text-brand-maroon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.965 2.214a1 1 0 0 0-1.93 0l-1.33 4.116a1 1 0 0 1-.956.69h-4.33a1 1 0 0 0-.97 1.258l2.25 6.953a1 1 0 0 1-.162.903l-3.32 4.103a1 1 0 0 0 .78 1.637h5.45a1 1 0 0 1 .957-.69l1.33-4.116a1 1 0 0 0-.797-1.37l-3.064-.998 1.41-4.357h2.29a1 1 0 0 1 .956.69l1.33 4.116a1 1 0 0 0 .957.69h5.45a1 1 0 0 0 .78-1.637l-3.32-4.103a1 1 0 0 1-.162-.903l2.25-6.953a1 1 0 0 0-.97-1.258h-4.33a1 1 0 0 1-.956-.69L12.965 2.214z" />
-        </svg>
-        <span class="text-2xl font-bold text-brand-maroon">Admin</span>
+    <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 mb-6 p-1">
+
+
+    <x-application-mark class="block h-8 w-auto" />
+
+
+    <span class="text-2xl font-extrabold"><span class="text-dark-green">Eco</span><span class="text-pink-logo">Spaces</span></span>
+
+    </a>
+        <span class="text-2xl font-bold text-dark-green">Admin</span>
     </a>
 
     <div class="mb-6">
-        <h2 class="text-lg font-bold text-brand-maroon">Hello</h2>
-        <p class="text-sm text-gray-500">{{ Auth::user()->name }}</p>
+        <h2 class="text-lg font-bold text-dark-green">Hello</h2>
+        <p class="text-sm text-dark-green opacity-60">{{ Auth::user()->name }}</p>
     </div>
 
     @php
@@ -28,7 +33,7 @@
     <nav class="flex-grow">
         <ul class="space-y-2">
             <li>
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-brand-maroon hover:text-brand-green p-2 rounded-lg transition-colors">
+                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-dark-green hover:text-brand-green p-2 rounded-lg transition-colors">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <rect x="3" y="3" width="7" height="7"></rect>
                         <rect x="14" y="3" width="7" height="7"></rect>
@@ -41,7 +46,7 @@
 
             <!-- Manage Ecospaces dropdown -->
             <li x-data="{ open: false }" class="relative">
-                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-brand-maroon p-2 rounded-lg hover:bg-gray-50 transition">
+                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-dark-green p-2 rounded-lg hover:bg-gray-50 transition">
                     <span class="flex items-center space-x-3">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -53,20 +58,20 @@
                 </button>
                 <ul class="hidden mt-2 space-y-1 pl-3">
                     <li>
-                        <a href="{{ route('admin.ecospaces') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.ecospaces') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>Current</span>
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $ecospaceCount }}</span>
+                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800 text-dark-green">{{ $ecospaceCount }}</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.ecospaces.create') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.ecospaces.create') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>Add New</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.ecospaces.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.ecospaces.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>View Archives</span>
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $ecospaceArchived }}</span>
+                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800 text-dark-green">{{ $ecospaceArchived }}</span>
                         </a>
                     </li>
                 </ul>
@@ -74,7 +79,7 @@
 
             <!-- Manage Events dropdown -->
             <li class="relative">
-                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-brand-maroon p-2 rounded-lg hover:bg-gray-50 transition">
+                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-dark-green p-2 rounded-lg hover:bg-gray-50 transition">
                     <span class="flex items-center space-x-3">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -88,20 +93,20 @@
                 </button>
                 <ul class="hidden mt-2 space-y-1 pl-3">
                     <li>
-                        <a href="{{ route('admin.events') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.events') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>Current</span>
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $eventCount }}</span>
+                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800 text-dark-green">{{ $eventCount }}</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.events.create') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.events.create') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>Add New</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.events.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.events.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>View Archives</span>
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $eventArchived }}</span>
+                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800 text-dark-green">{{ $eventArchived }}</span>
                         </a>
                     </li>
                 </ul>
@@ -109,7 +114,7 @@
 
             <!-- Manage Users dropdown -->
             <li class="relative">
-                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-brand-maroon p-2 rounded-lg hover:bg-gray-50 transition">
+                <button type="button" onclick="(function(el){el.nextElementSibling.classList.toggle('hidden');})(this)" class="flex items-center justify-between w-full text-dark-green p-2 rounded-lg hover:bg-gray-50 transition">
                     <span class="flex items-center space-x-3">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"></path>
@@ -121,15 +126,15 @@
                 </button>
                 <ul class="hidden mt-2 space-y-1 pl-3">
                     <li>
-                        <a href="{{ route('admin.users') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.users') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>Current</span>
                             <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $userCount }}</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.users.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100">
+                        <a href="{{ route('admin.users.archives') }}" class="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-100 text-dark-green">
                             <span>View Archives</span>
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">{{ $userArchived }}</span>
+                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800 text-dark-green">{{ $userArchived }}</span>
                         </a>
                     </li>
                 </ul>
@@ -137,18 +142,18 @@
         </ul>
     </nav>
 
-    <hr class="my-4 border-gray-200">
+    <hr class="my-4 border-dark-green">
 
     <div>
         <form method="POST" action="{{ route('logout') }}">@csrf
-            <button type="submit" class="flex items-center space-x-3 text-gray-700 hover:text-brand-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <button type="submit" class="flex items-center space-x-3 text-dark-green hover:text-dark-green p-2 rounded-lg hover:bg-gray-50 transition-colors">
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                    <polyline points="10 17 15 12 10 7"></polyline>
-                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
                 </svg>
-                <span class="font-medium">Log out</span>
-            </button>
-        </form>
-    </div>
+                    <span class="font-medium text-dark-green">Log out</span>
+                </button>
+            </form>
+        </div>
 </aside>
