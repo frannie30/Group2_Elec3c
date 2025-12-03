@@ -92,7 +92,8 @@
                            <label for="images" class="block text-sm font-medium text-dark-green mb-2">Upload Images</label>
                            <input type="file" id="images" name="images[]" multiple accept="image/*"
                                class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white">
-                           <p class="text-sm text-gray-500 mt-2">You may upload multiple images (jpg, png, gif, webp). Max size per image 5MB.</p>
+                           <p class="text-sm text-gray-500 mt-2">You may upload multiple images (jpg, png, gif, webp). Max size per image 5MB. Up to 7 files.</p>
+                           <div id="images-error" class="text-red-600 text-sm mt-2 hidden"></div>
                         @error('images')
                         <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
                         @enderror
@@ -103,7 +104,7 @@
 
                     <!-- Buttons -->
                     <div class="flex justify-center gap-4 mt-8">
-                        <button type="submit" class="bg-magenta-secondary text-white px-6 py-2 rounded-md font-semibold shadow-sm hover:bg-magenta-secondary/90 transition">
+                        <button id="images-submit-btn" type="submit" class="bg-magenta-secondary text-white px-6 py-2 rounded-md font-semibold shadow-sm hover:bg-magenta-secondary/90 transition">
                             Submit EcoSpace
                         </button>
                         <a href="{{ route('index.index') }}"
@@ -117,3 +118,35 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const input = document.getElementById('images');
+    const errorEl = document.getElementById('images-error');
+    const submitBtn = document.getElementById('images-submit-btn');
+
+    function validate() {
+        if (!input || !input.files) return true;
+        const files = Array.from(input.files);
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+        submitBtn.disabled = false;
+
+        if (files.length > 7) {
+            errorEl.textContent = 'You may only upload up to 7 images.';
+            errorEl.classList.remove('hidden');
+            submitBtn.disabled = true;
+            return false;
+        }
+        return true;
+    }
+
+    if (input) input.addEventListener('change', validate);
+    const form = input ? input.closest('form') : null;
+    if (form) {
+        form.addEventListener('submit', function(e){
+            if (!validate()) e.preventDefault();
+        });
+    }
+});
+</script>

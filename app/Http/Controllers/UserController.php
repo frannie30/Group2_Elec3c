@@ -74,13 +74,7 @@ class UserController extends Controller
                 }
             }
 
-            // Fallback static bookmarks if none found
-            if ($bookmarks->isEmpty()) {
-                $bookmarks = collect([
-                    ['title' => 'Community Garden', 'link' => '#', 'type' => 'ecospace'],
-                    ['title' => 'Outdoor Lab', 'link' => '#', 'type' => 'event']
-                ]);
-            }
+            // Do not add placeholder bookmarks when none exist
 
             $bookmarks = $bookmarks->values()->all();
         }

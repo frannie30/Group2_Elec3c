@@ -30,9 +30,18 @@
                 <div class="mb-6">
                     @if(count($imgs))
                         <div id="detail-carousel" class="relative" data-images='@json($imgs)' data-index="0">
-                            <img id="detail-img" src="{{ $imgs[0] }}" alt="{{ $event->eventName }}" class="w-full h-72 lg:h-96 object-cover rounded-lg" />
+                            <img id="detail-img" src="{{ $imgs[0] }}" alt="{{ $event->eventName }}" class="w-full h-72 lg:h-96 object-contain rounded-lg bg-gray-100" />
                             <button onclick="detailPrev()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">‹</button>
                             <button onclick="detailNext()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">›</button>
+
+                            {{-- Thumbnails --}}
+                            <div id="detail-thumbs" class="mt-3 flex gap-2 overflow-x-auto">
+                                @foreach($imgs as $i => $thumb)
+                                    <button type="button" class="thumb-btn rounded-md border-2" data-index="{{ $i }}" aria-label="View image {{ $i + 1 }}">
+                                        <img src="{{ $thumb }}" alt="thumb-{{ $i }}" class="w-20 h-14 object-contain rounded-md bg-gray-100" />
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
                     @else
                         <div class="w-full h-72 bg-gray-100 flex items-center justify-center text-gray-400">No images available</div>
@@ -127,21 +136,43 @@
                 const imgs = container ? JSON.parse(container.getAttribute('data-images') || '[]') : [];
                 let idx = parseInt(container?.getAttribute('data-index') || '0', 10) || 0;
 
+                function updateMain(index) {
+                    const el = document.getElementById('detail-img');
+                    if (!el || !imgs.length) return;
+                    idx = (index + imgs.length) % imgs.length;
+                    el.src = imgs[idx];
+                    if (container) container.setAttribute('data-index', idx);
+
+                    // Update thumbnail active state
+                    const thumbs = document.querySelectorAll('#detail-thumbs .thumb-btn');
+                    thumbs.forEach(t => t.classList.remove('ring-2','ring-green-600'));
+                    const active = document.querySelector('#detail-thumbs .thumb-btn[data-index="' + idx + '"]');
+                    if (active) active.classList.add('ring-2','ring-green-600');
+                }
+
                 window.detailNext = function() {
                     if (!imgs.length) return;
-                    idx = (idx + 1) % imgs.length;
-                    if (container) container.setAttribute('data-index', idx);
-                    const el = document.getElementById('detail-img');
-                    if (el) el.src = imgs[idx];
+                    updateMain(idx + 1);
                 }
 
                 window.detailPrev = function() {
                     if (!imgs.length) return;
-                    idx = (idx - 1 + imgs.length) % imgs.length;
-                    if (container) container.setAttribute('data-index', idx);
-                    const el = document.getElementById('detail-img');
-                    if (el) el.src = imgs[idx];
+                    updateMain(idx - 1);
                 }
+
+                // Thumbnails click handlers
+                document.addEventListener('DOMContentLoaded', function() {
+                    const thumbs = document.querySelectorAll('#detail-thumbs .thumb-btn');
+                    thumbs.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const i = parseInt(btn.getAttribute('data-index'), 10);
+                            updateMain(i);
+                        });
+                    });
+
+                    // mark initial thumb
+                    updateMain(idx);
+                });
             })();
 
             // Attendance handled server-side via standard POST form; no JS required here.

@@ -7,7 +7,7 @@
             $__avgRating = $avgRating ?? null;
             // show full stars by floor so decimal averages still display the appropriate
             // number of full stars (e.g. 4.3 -> 4 full stars). Keep numeric average as 1-decimal.
-            $__filledAvg = $__avgRating ? (int) floor($__avgRating) : 0;
+            $__filledAvg = $__avgRating ? (int) round($__avgRating) : 0;
             $__totalStars = $reviewStarsTotal ?? 0;
             $__latestReviewDate = $latestReviewDate ?? null;
         @endphp
@@ -45,9 +45,18 @@
                 <div class="mb-6">
                     @if(count($imgs))
                         <div id="detail-carousel" class="relative" data-images='@json($imgs)' data-index="0">
-                            <img id="detail-img" src="{{ $imgs[0] }}" alt="{{ $ecospace->ecospaceName }}" class="w-full h-72 lg:h-96 object-cover rounded-lg" />
+                            <img id="detail-img" src="{{ $imgs[0] }}" alt="{{ $ecospace->ecospaceName }}" class="w-full h-72 lg:h-96 object-contain rounded-lg bg-gray-100" />
                             <button onclick="detailPrev()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">‹</button>
                             <button onclick="detailNext()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2">›</button>
+
+                            {{-- Thumbnails --}}
+                            <div id="detail-thumbs" class="mt-3 flex gap-2 overflow-x-auto">
+                                @foreach($imgs as $i => $thumb)
+                                    <button type="button" class="thumb-btn rounded-md border-2" data-index="{{ $i }}" aria-label="View image {{ $i + 1 }}">
+                                        <img src="{{ $thumb }}" alt="thumb-{{ $i }}" class="w-20 h-14 object-contain rounded-md bg-gray-100" />
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
                     @else
                         <div class="w-full h-72 bg-gray-100 flex items-center justify-center text-gray-400">No images available</div>
@@ -225,7 +234,7 @@
                                                             @if(!empty($r->images) && $r->images->count())
                                                                 <div class="mt-3 flex gap-3 overflow-x-auto">
                                                                     @foreach($r->images as $ri)
-                                                                        <img src="{{ Storage::url($ri->revImgName) }}" alt="review image" class="w-28 h-20 object-cover rounded-md border" />
+                                                                        <img src="{{ Storage::url($ri->revImgName) }}" alt="review image" class="w-28 h-20 object-contain rounded-md border bg-gray-100" />
                                                                     @endforeach
                                                                 </div>
                                                             @endif
@@ -335,11 +344,26 @@
                                         <h5 class="text-sm font-semibold text-dark-green mb-2">Pros</h5>
                                         <div class="space-y-2">
                                             @foreach($pros as $pc)
-                                                <div class="text-sm border-b pb-2">
-                                                    <div class="font-semibold text-gray-800">{{ $pc->description }}</div>
-                                                    <div class="text-xs text-gray-500 mt-1">— {{ $pc->user->name ?? ('User #' . $pc->userID) }} · {{ optional($pc->dateCreated)->format('M d, Y') ?? '' }}</div>
-                                                </div>
-                                            @endforeach
+                                                    <div class="text-sm border-b pb-2 flex items-start justify-between">
+                                                        <div>
+                                                            <div class="font-semibold text-gray-800">{{ $pc->description }}</div>
+                                                            <div class="text-xs text-gray-500 mt-1">— {{ $pc->user->name ?? ('User #' . $pc->userID) }} · {{ optional($pc->dateCreated)->format('M d, Y') ?? '' }}</div>
+                                                        </div>
+
+                                                        @auth
+                                                            @if(auth()->id() == $pc->userID)
+                                                                <div class="ml-4 text-right flex flex-col items-end gap-2">
+                                                                    <a href="{{ route('ecospace.proscons.edit', [$ecospace->ecospaceID, $pc->pcID]) }}" class="text-sm text-magenta-secondary">Edit</a>
+                                                                    <form action="{{ route('ecospace.proscons.destroy', [$ecospace->ecospaceID, $pc->pcID]) }}" method="POST" onsubmit="return confirm('Delete this entry?');">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="text-sm text-red-600">Delete</button>
+                                                                    </form>
+                                                                </div>
+                                                            @endif
+                                                        @endauth
+                                                    </div>
+                                                @endforeach
                                         </div>
 
                                         @if(method_exists($pros, 'links'))
@@ -355,9 +379,24 @@
                                         <h5 class="text-sm font-semibold text-red-700 mb-2">Cons</h5>
                                         <div class="space-y-2">
                                             @foreach($cons as $pc)
-                                                <div class="text-sm border-b pb-2">
-                                                    <div class="font-semibold text-gray-800">{{ $pc->description }}</div>
-                                                    <div class="text-xs text-gray-500 mt-1">— {{ $pc->user->name ?? ('User #' . $pc->userID) }} · {{ optional($pc->dateCreated)->format('M d, Y') ?? '' }}</div>
+                                                <div class="text-sm border-b pb-2 flex items-start justify-between">
+                                                    <div>
+                                                        <div class="font-semibold text-gray-800">{{ $pc->description }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">— {{ $pc->user->name ?? ('User #' . $pc->userID) }} · {{ optional($pc->dateCreated)->format('M d, Y') ?? '' }}</div>
+                                                    </div>
+
+                                                    @auth
+                                                        @if(auth()->id() == $pc->userID)
+                                                            <div class="ml-4 text-right flex flex-col items-end gap-2">
+                                                                <a href="{{ route('ecospace.proscons.edit', [$ecospace->ecospaceID, $pc->pcID]) }}" class="text-sm text-magenta-secondary">Edit</a>
+                                                                <form action="{{ route('ecospace.proscons.destroy', [$ecospace->ecospaceID, $pc->pcID]) }}" method="POST" onsubmit="return confirm('Delete this entry?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="text-sm text-red-600">Delete</button>
+                                                                </form>
+                                                            </div>
+                                                        @endif
+                                                    @endauth
                                                 </div>
                                             @endforeach
                                         </div>
@@ -381,21 +420,43 @@
                 const imgs = container ? JSON.parse(container.getAttribute('data-images') || '[]') : [];
                 let idx = parseInt(container?.getAttribute('data-index') || '0', 10) || 0;
 
+                function updateMain(index) {
+                    const el = document.getElementById('detail-img');
+                    if (!el || !imgs.length) return;
+                    idx = (index + imgs.length) % imgs.length;
+                    el.src = imgs[idx];
+                    if (container) container.setAttribute('data-index', idx);
+
+                    // Update thumbnail active state
+                    const thumbs = document.querySelectorAll('#detail-thumbs .thumb-btn');
+                    thumbs.forEach(t => t.classList.remove('ring-2','ring-magenta-secondary'));
+                    const active = document.querySelector('#detail-thumbs .thumb-btn[data-index="' + idx + '"]');
+                    if (active) active.classList.add('ring-2','ring-magenta-secondary');
+                }
+
                 window.detailNext = function() {
                     if (!imgs.length) return;
-                    idx = (idx + 1) % imgs.length;
-                    if (container) container.setAttribute('data-index', idx);
-                    const el = document.getElementById('detail-img');
-                    if (el) el.src = imgs[idx];
+                    updateMain(idx + 1);
                 }
 
                 window.detailPrev = function() {
                     if (!imgs.length) return;
-                    idx = (idx - 1 + imgs.length) % imgs.length;
-                    if (container) container.setAttribute('data-index', idx);
-                    const el = document.getElementById('detail-img');
-                    if (el) el.src = imgs[idx];
+                    updateMain(idx - 1);
                 }
+
+                // Thumbnails click handlers
+                document.addEventListener('DOMContentLoaded', function() {
+                    const thumbs = document.querySelectorAll('#detail-thumbs .thumb-btn');
+                    thumbs.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const i = parseInt(btn.getAttribute('data-index'), 10);
+                            updateMain(i);
+                        });
+                    });
+
+                    // mark initial thumb
+                    updateMain(idx);
+                });
             })();
         </script>
         <script>

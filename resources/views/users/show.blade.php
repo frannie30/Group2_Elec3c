@@ -108,9 +108,18 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         @if($events->count())
                             @foreach($events as $event)
-                                @php
+                                    @php
                                     $firstImg = $event->images->first();
-                                    $imgUrl = $firstImg ? Storage::url($firstImg->path) : null;
+                                    $imgUrl = null;
+                                    if ($firstImg) {
+                                        try {
+                                            if (Storage::disk('public')->exists($firstImg->path)) {
+                                                $imgUrl = Storage::url($firstImg->path) . '?t=' . Storage::disk('public')->lastModified($firstImg->path);
+                                            }
+                                        } catch (\Exception $e) {
+                                            $imgUrl = Storage::url($firstImg->path);
+                                        }
+                                    }
                                 @endphp
                                 <div class="bg-white/90 border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
                                     @if($imgUrl)
@@ -156,11 +165,42 @@
                                         @else
                                             <span class="text-gray-500">No linked resource</span>
                                         @endif
+
+                                        @if(!empty($review->review))
+                                            <div class="mt-2 text-gray-700">{{ $review->review }}</div>
+                                        @endif
                                     </div>
 
-                                        <div class="text-right text-xs text-gray-500">
+                                    <div class="text-right text-xs text-gray-500">
                                         <div>{{ optional($review->dateCreated)->format('M d, Y') ?? '' }}</div>
-                                        <div class="text-magenta-secondary font-semibold">{{ number_format($review->rating,1) }}/5</div>
+                                        @php $filled = (int) floor($review->rating); @endphp
+                                        <div class="text-magenta-secondary font-semibold">
+                                            <span class="flex items-center text-sm text-gray-700 font-semibold">
+                                                @for($i=1;$i<=5;$i++)
+                                                    @if($i <= $filled)
+                                                        <span class="text-yellow-500">★</span>
+                                                    @else
+                                                        <span class="text-gray-300">☆</span>
+                                                    @endif
+                                                @endfor
+                                                <span class="ml-2">{{ number_format($review->rating,1) }}/5</span>
+                                            </span>
+                                        </div>
+
+                                        @auth
+                                            @if(auth()->id() == $review->userID)
+                                                <div class="mt-2">
+                                                    @if($review->ecospace)
+                                                        <a href="{{ route('ecospace.reviews.edit', [$review->ecospace->ecospaceID, $review->reviewID]) }}" class="text-sm text-magenta-secondary mr-3">Edit</a>
+                                                        <form action="{{ route('ecospace.reviews.destroy', [$review->ecospace->ecospaceID, $review->reviewID]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this review?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="text-sm text-red-600">Delete</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endauth
                                     </div>
                                 </div>
                             @endforeach
@@ -221,14 +261,11 @@
                             $hasAnyBookmarks = ($eventBms->count() ?? 0) + ($ecoBms->count() ?? 0) + ($otherBms->count() ?? 0);
                         @endphp
 
-                        @if(!$hasAnyBookmarks)
-                            <div class="text-magenta-secondary">No bookmarks yet.</div>
-                        @else
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                @if($eventBms->count())
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-magenta-secondary mb-4">Event Bookmarks</h4>
-                                        <div class="space-y-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-magenta-secondary mb-4">Event Bookmarks</h4>
+                                    <div class="space-y-4">
+                                        @if($eventBms->count())
                                             @foreach($eventBmsPag as $bm)
                                                 <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                                                     <div>
@@ -243,14 +280,16 @@
                                             @if(isset($eventBmsPag) && method_exists($eventBmsPag, 'links'))
                                                 <div class="mt-3">{{ $eventBmsPag->links() }}</div>
                                             @endif
-                                        </div>
+                                        @else
+                                            <div class="text-magenta-secondary">No event bookmarks yet.</div>
+                                        @endif
                                     </div>
-                                @endif
+                                </div>
 
-                                @if($ecoBms->count())
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-magenta-secondary mb-4">EcoSpace Bookmarks</h4>
-                                        <div class="space-y-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-magenta-secondary mb-4">EcoSpace Bookmarks</h4>
+                                    <div class="space-y-4">
+                                        @if($ecoBms->count())
                                             @foreach($ecoBmsPag as $bm)
                                                 <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex items-center justify-between">
                                                     <div>
@@ -265,9 +304,11 @@
                                             @if(isset($ecoBmsPag) && method_exists($ecoBmsPag, 'links'))
                                                 <div class="mt-3">{{ $ecoBmsPag->links() }}</div>
                                             @endif
-                                        </div>
+                                        @else
+                                            <div class="text-magenta-secondary">No ecospace bookmarks yet.</div>
+                                        @endif
                                     </div>
-                                @endif
+                                </div>
                             </div>
 
                             @if($otherBms->count())
@@ -285,7 +326,6 @@
                                     </div>
                                 </div>
                             @endif
-                        @endif
                     </div>
                 @endif
 
@@ -296,14 +336,67 @@
                         @if($user->ecospaces->count())
                             @foreach($user->ecospaces as $ecospace)
                                 @php
-                                    $firstImg = $ecospace->images->first();
-                                    $imgUrl = $firstImg ? Storage::url($firstImg->path) : null;
+                                    // Show the most recently uploaded image so profile cards update when new images are added
+                                    $firstImg = $ecospace->images()->orderByDesc('esImageID')->first();
+                                    $imgUrl = null;
+                                    if ($firstImg) {
+                                        try {
+                                            if (Storage::disk('public')->exists($firstImg->path)) {
+                                                $imgUrl = Storage::url($firstImg->path) . '?t=' . Storage::disk('public')->lastModified($firstImg->path);
+                                            } else {
+                                                $imgUrl = Storage::url($firstImg->path);
+                                            }
+                                        } catch (\Exception $e) {
+                                            $imgUrl = Storage::url($firstImg->path);
+                                        }
+                                    }
                                 @endphp
-                                <div class="bg-white/90 border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+                                <div class="bg-white/90 border border-gray-200 rounded-2xl shadow-lg overflow-hidden relative">
                                     @if($imgUrl)
                                         <img src="{{ $imgUrl }}" alt="{{ $ecospace->ecospaceName }}" class="w-full h-40 object-cover" />
                                     @else
                                         <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400">No image</div>
+                                    @endif
+                                    @php
+                                        // If no ecospace image, try fallback to the newest review image (like the detail page)
+                                        $firstImg = $ecospace->images()->orderByDesc('esImageID')->first();
+                                        $reviewImg = null;
+                                        if (!$firstImg) {
+                                            $latestReviewWithImg = $ecospace->reviews()->whereHas('images')->with('images')->orderByDesc('dateCreated')->first();
+                                            if ($latestReviewWithImg && $latestReviewWithImg->images->count()) {
+                                                $reviewImg = $latestReviewWithImg->images->first();
+                                            }
+                                        }
+
+                                        if ($firstImg && Storage::disk('public')->exists($firstImg->path)) {
+                                            $ts = Storage::disk('public')->lastModified($firstImg->path);
+                                            $imgUrl = Storage::url($firstImg->path) . '?t=' . $ts;
+                                            $imgSource = 'ecospace';
+                                            $imgPath = $firstImg->path;
+                                        } elseif ($firstImg) {
+                                            $imgUrl = Storage::url($firstImg->path);
+                                            $imgSource = 'ecospace';
+                                            $imgPath = $firstImg->path;
+                                        } elseif ($reviewImg) {
+                                            $imgUrl = Storage::url($reviewImg->revImgName) . (Storage::disk('public')->exists($reviewImg->revImgName) ? ('?t=' . Storage::disk('public')->lastModified($reviewImg->revImgName)) : '');
+                                            $imgSource = 'review';
+                                            $imgPath = $reviewImg->revImgName;
+                                        } else {
+                                            $imgUrl = null;
+                                            $imgSource = null;
+                                            $imgPath = null;
+                                        }
+
+                                        // Show debug overlay only to the ecospace owner (remove APP_DEBUG gating)
+                                        $debugShow = (auth()->check() && auth()->id() == ($ecospace->userID ?? null));
+                                    @endphp
+                                    @if($debugShow)
+                                        <div class="absolute left-2 top-2 bg-white/80 text-xs text-gray-800 p-2 rounded border shadow-sm z-30">
+                                            <div><strong>Source:</strong> {{ $imgSource ?? 'none' }}</div>
+                                            <div><strong>DB path:</strong> {{ $imgPath ?? 'none' }}</div>
+                                            <div><strong>Exists:</strong> {{ $imgPath ? (Storage::disk('public')->exists($imgPath) ? 'yes' : 'no') : 'n/a' }}</div>
+                                            <div class="break-words"><strong>URL:</strong> {{ $imgPath ? Storage::url($imgPath) : 'n/a' }}</div>
+                                        </div>
                                     @endif
                                     <div class="p-4">
                                         <h4 class="text-lg font-bold text-dark-green">{{ $ecospace->ecospaceName }}</h4>
@@ -334,7 +427,16 @@
                             @foreach($attIter as $event)
                                 @php
                                     $firstImg = $event->images->first();
-                                    $imgUrl = $firstImg ? Storage::url($firstImg->path) : null;
+                                    $imgUrl = null;
+                                    if ($firstImg) {
+                                        try {
+                                            if (Storage::disk('public')->exists($firstImg->path)) {
+                                                $imgUrl = Storage::url($firstImg->path) . '?t=' . Storage::disk('public')->lastModified($firstImg->path);
+                                            }
+                                        } catch (\Exception $e) {
+                                            $imgUrl = Storage::url($firstImg->path);
+                                        }
+                                    }
                                 @endphp
                                 <div class="bg-white/90 border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
                                     @if($imgUrl)

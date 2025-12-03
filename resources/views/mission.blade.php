@@ -215,11 +215,10 @@
 
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5"/>
-                                <circle cx="17" cy="7" r="4"/>
-                                <path d="M9 7a4 4 0 1 1 0 8"/>
-                            </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 20.042A8 8 0 0112 16a8 8 0 019.542 4.042" />
+                                </svg>
                         </div>
                         <div class="feature-title">Connect</div>
                         <div class="feature-desc">Join community events, clean-ups, and workshops that make a difference.</div>
@@ -227,11 +226,9 @@
 
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor">
-                                <path d="M12 2v20"/>
-                                <path d="M5 11h14"/>
-                                <path d="M7 7h10"/>
-                            </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
                         </div>
                         <div class="feature-title">Contribute</div>
                         <div class="feature-desc">Share your favorite eco-spaces and help build a sustainable community.</div>

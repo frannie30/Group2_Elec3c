@@ -37,16 +37,71 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-dark-green">Add Images (optional)</label>
-                    <input type="file" name="images[]" accept="image/*" multiple class="w-full" />
-                    <p class="text-xs text-gray-500 mt-2">You can upload multiple images. Max 5MB each.</p>
+                    <input id="review-images-input" type="file" name="images[]" accept=".jpg,.jpeg,.png" multiple class="w-full" />
+                    <p class="text-xs text-gray-500 mt-2">You can upload multiple images (JPG, PNG). Max 5MB each. Up to 3 files per upload.</p>
+                    <div id="review-images-error" class="text-red-600 text-sm mt-2 hidden"></div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button type="submit" class="bg-magenta-secondary text-white px-4 py-2 rounded-md font-semibold">Update Review</button>
+                    <button id="review-submit-btn" type="submit" class="bg-magenta-secondary text-white px-4 py-2 rounded-md font-semibold">Update Review</button>
                     <a href="{{ $targetType === 'ecospace' ? route('ecospace', ['name' => $target->ecospaceName]) : route('events.show', ['id' => $target->eventID]) }}" class="text-magenta-secondary">Cancel</a>
                 </div>
                 </form>
             </div>
         </div>
     </main>
+    <script>
+        (function(){
+            const input = document.getElementById('review-images-input');
+            const errorEl = document.getElementById('review-images-error');
+            const submitBtn = document.getElementById('review-submit-btn');
+
+            function validateFiles() {
+                errorEl.classList.add('hidden');
+                errorEl.textContent = '';
+                submitBtn.disabled = false;
+
+                if (!input || !input.files) return true;
+                const files = Array.from(input.files);
+                if (files.length > 3) {
+                    errorEl.textContent = 'You may only upload up to 3 images at a time.';
+                    errorEl.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                    return false;
+                }
+
+                // check file types and sizes
+                for (const f of files) {
+                    const ext = (f.name.split('.').pop() || '').toLowerCase();
+                    if (!['jpg','jpeg','png'].includes(ext)) {
+                        errorEl.textContent = 'Only JPG, JPEG or PNG images are allowed.';
+                        errorEl.classList.remove('hidden');
+                        submitBtn.disabled = true;
+                        return false;
+                    }
+                    if (f.size > 5 * 1024 * 1024) {
+                        errorEl.textContent = 'Each image must be 5MB or smaller.';
+                        errorEl.classList.remove('hidden');
+                        submitBtn.disabled = true;
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            if (input) {
+                input.addEventListener('change', validateFiles);
+            }
+            // Prevent submit if invalid
+            const form = input ? input.closest('form') : null;
+            if (form) {
+                form.addEventListener('submit', function(e){
+                    if (!validateFiles()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        })();
+    </script>
 </x-app-layout>

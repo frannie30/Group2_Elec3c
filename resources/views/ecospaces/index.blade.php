@@ -57,9 +57,35 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     @if(isset($ecospaces) && $ecospaces->count())
                         @foreach($ecospaces as $ecospace)
-                            @php
-                                $firstImg = $ecospace->images->first();
-                                $imgUrl = $firstImg ? Storage::url($firstImg->path) : 'https://placehold.co/400x300/A8C6B7/FFFFFF?text=No+Image';
+                                @php
+                                // Prefer the most recently uploaded ecospace image; if none, fall back to the newest review image
+                                $firstImg = $ecospace->images()->orderByDesc('esImageID')->first();
+                                $reviewImg = null;
+                                if (!$firstImg) {
+                                    $latestReviewWithImg = $ecospace->reviews()->whereHas('images')->with('images')->orderByDesc('dateCreated')->first();
+                                    if ($latestReviewWithImg && $latestReviewWithImg->images->count()) {
+                                        $reviewImg = $latestReviewWithImg->images->first();
+                                    }
+                                }
+
+                                if ($firstImg && Storage::disk('public')->exists($firstImg->path)) {
+                                    $ts = Storage::disk('public')->lastModified($firstImg->path);
+                                    $imgUrl = Storage::url($firstImg->path) . '?t=' . $ts;
+                                    $imgSource = 'ecospace';
+                                    $imgPath = $firstImg->path;
+                                } elseif ($firstImg) {
+                                    $imgUrl = Storage::url($firstImg->path);
+                                    $imgSource = 'ecospace';
+                                    $imgPath = $firstImg->path;
+                                } elseif ($reviewImg) {
+                                    $imgUrl = Storage::url($reviewImg->revImgName) . (Storage::disk('public')->exists($reviewImg->revImgName) ? ('?t=' . Storage::disk('public')->lastModified($reviewImg->revImgName)) : '');
+                                    $imgSource = 'review';
+                                    $imgPath = $reviewImg->revImgName;
+                                } else {
+                                    $imgUrl = 'https://placehold.co/400x300/A8C6B7/FFFFFF?text=No+Image';
+                                    $imgSource = null;
+                                    $imgPath = null;
+                                }
                                 $isPaid = $ecospace->priceTier && $ecospace->priceTier->pricetier ? true : false;
                                 $esBookmarked = isset($bookmarkedEcospaces) ? in_array($ecospace->ecospaceID, $bookmarkedEcospaces) : false;
                             @endphp
@@ -67,6 +93,17 @@
                                 <div class="relative">
                                     <a href="{{ route('ecospace', ['name' => $ecospace->ecospaceName]) }}" class="block absolute inset-0 z-10" aria-label="View {{ $ecospace->ecospaceName }}"></a>
                                     <img src="{{ $imgUrl }}" alt="{{ $ecospace->ecospaceName }}" class="w-full h-48 object-cover" />
+                                    @php
+                                        // Show debug overlay only to the ecospace owner (remove APP_DEBUG gating)
+                                        $debugShow = (auth()->check() && auth()->id() == ($ecospace->userID ?? null));
+                                    @endphp
+                                    @if($debugShow)
+                                        <div class="absolute left-2 top-2 bg-white/80 text-xs text-gray-800 p-2 rounded border shadow-sm z-30">
+                                            <div><strong>DB path:</strong> {{ $firstImg?->path ?? 'none' }}</div>
+                                            <div><strong>Exists:</strong> {{ $firstImg ? (Storage::disk('public')->exists($firstImg->path) ? 'yes' : 'no') : 'n/a' }}</div>
+                                            <div><strong>URL:</strong> {{ $firstImg ? Storage::url($firstImg->path) : 'n/a' }}</div>
+                                        </div>
+                                    @endif
                                     @auth
                                         <form method="POST" action="{{ route('bookmark.ecospace.toggle', $ecospace->ecospaceID) }}" class="absolute top-4 right-4 z-20">
                                             @csrf

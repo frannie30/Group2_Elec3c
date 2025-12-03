@@ -48,7 +48,15 @@
                         foreach($events->take(5) as $ev){
                             $first = $ev->images->first();
                             if($first){
-                                $slideImages[] = Storage::url($first->path);
+                                try {
+                                    if (Storage::disk('public')->exists($first->path)) {
+                                        $slideImages[] = Storage::url($first->path) . '?t=' . Storage::disk('public')->lastModified($first->path);
+                                    } else {
+                                        $slideImages[] = asset('images/EcoSpace5.jpg');
+                                    }
+                                } catch (\Exception $e) {
+                                    $slideImages[] = Storage::url($first->path);
+                                }
                             } else {
                                 $slideImages[] = asset('images/EcoSpace5.jpg');
                             }
@@ -64,7 +72,7 @@
                 @endphp
 
                 <div class="hidden md:block">
-                    <img id="hero-slide-image" src="{{ $slideImages[0] ?? asset('images/EcoSpace5.jpg') }}" alt="Events slideshow" class="rounded-lg shadow-lg w-full h-auto object-cover transition-opacity duration-1000" style="aspect-ratio:4/3;" />
+                    <img id="hero-slide-image" src="{{ $slideImages[0] ?? asset('images/EcoSpace5.jpg') }}" alt="Events slideshow" class="rounded-lg shadow-lg w-full h-auto object-contain transition-opacity duration-1000 bg-gray-100" style="aspect-ratio:4/3;" />
                 </div>
             </div>
         </section>
@@ -85,7 +93,18 @@
                         @foreach($events->take(3) as $event)
                             @php
                                 $firstImg = $event->images->first();
-                                $imgUrl = $firstImg ? Storage::url($firstImg->path) : 'https://placehold.co/400x300/A8C6B7/FFFFFF?text=No+Image';
+                                $imgUrl = 'https://placehold.co/400x300/A8C6B7/FFFFFF?text=No+Image';
+                                if ($firstImg) {
+                                    try {
+                                        if (Storage::disk('public')->exists($firstImg->path)) {
+                                            $imgUrl = Storage::url($firstImg->path) . '?t=' . Storage::disk('public')->lastModified($firstImg->path);
+                                        } else {
+                                            $imgUrl = 'https://placehold.co/400x300/A8C6B7/FFFFFF?text=No+Image';
+                                        }
+                                    } catch (\Exception $e) {
+                                        $imgUrl = Storage::url($firstImg->path);
+                                    }
+                                }
                                 $isPaid = $event->priceTier && $event->priceTier->pricetier ? true : false;
                                 $evBookmarked = auth()->check() ? auth()->user()->evBookmarks()->where('eventID', $event->eventID)->exists() : false;
                             @endphp
@@ -93,7 +112,7 @@
                             <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:scale-105 duration-300 ease-in-out">
                                 <div class="relative">
                                     <a href="{{ route('events.show', ['id' => $event->eventID]) }}" class="block absolute inset-0 z-10" aria-label="View {{ $event->eventName }} details"></a>
-                                    <img src="{{ $imgUrl }}" alt="{{ $event->eventName }}" class="w-full h-48 object-cover" />
+                                    <img src="{{ $imgUrl }}" alt="{{ $event->eventName }}" class="w-full h-48 object-contain bg-gray-100" />
 
                                     @auth
                                         <form method="POST" action="{{ route('bookmark.event.toggle', $event->eventID) }}" class="absolute top-4 right-4 z-20">

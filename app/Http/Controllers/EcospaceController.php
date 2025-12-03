@@ -6,6 +6,8 @@ use App\Models\Ecospace;
 use App\Models\Status;
 use App\Models\PriceTier;
 use App\Models\Image;
+use Intervention\Image\ImageManagerStatic as Img;
+use Illuminate\Support\Str;
 use App\Models\Event;
 use App\Models\EvBookmark;
 use App\Models\EsBookmark;
@@ -508,9 +510,14 @@ class EcospaceController extends Controller
             'ecospaceDesc' => 'nullable|string|min:5|max:1000',
             // Price tier must exist in tbl_pricetiers
             'priceTierID' => 'required|integer|exists:tbl_pricetiers,priceTierID',
-            // Images are optional; each must be a valid image under 5MB
-            'images' => 'nullable|array',
+            // Images are optional; limit to 7 files, each must be a valid image under 5MB
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ], [
+            'images.max' => 'You may only upload up to 7 images.',
+            'images.*.image' => 'Each file must be a valid image.',
+            'images.*.mimes' => 'Images must be jpeg, png, jpg, gif, or webp.',
+            'images.*.max' => 'Each image must be at most 5MB.',
         ]);
            // Removed openingHours, closingHours, and daysOpened from validation
            // 'openingHours' => 'nullable|string|max:50',
@@ -539,8 +546,8 @@ class EcospaceController extends Controller
                 if (!$file->isValid()) {
                     continue;
                 }
-                // store under storage/app/public/ecospace_images
-                $path = $file->store('ecospace_images', 'public');
+                    // process image (resize + watermark) and store under storage/app/public/ecospace_images
+                    $path = $this->processEcospaceImageUpload($file);
 
                 Image::create([
                     'ecospaceID' => $ecospace->ecospaceID,
@@ -795,7 +802,7 @@ class EcospaceController extends Controller
             'ecospaceDesc' => 'nullable|string|max:1000',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             // removed opening/closing/days from update validation
-            'images' => 'nullable|array',
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_esImages,esImageID',
@@ -833,7 +840,7 @@ class EcospaceController extends Controller
             $index = 0;
             foreach ($request->file('images') as $file) {
                 if (!$file->isValid()) continue;
-                $path = $file->store('ecospace_images', 'public');
+                $path = $this->processEcospaceImageUpload($file);
                 Image::create([
                     'ecospaceID' => $ecospace->ecospaceID,
                     'path' => $path,
@@ -859,7 +866,7 @@ class EcospaceController extends Controller
             'ecospaceDesc' => 'nullable|string|max:1000',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             // removed opening/closing/days from owner update validation
-            'images' => 'nullable|array',
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_esImages,esImageID',
@@ -899,7 +906,7 @@ class EcospaceController extends Controller
             $index = 0;
             foreach ($request->file('images') as $file) {
                 if (!$file->isValid()) continue;
-                $path = $file->store('ecospace_images', 'public');
+                $path = $this->processEcospaceImageUpload($file);
                 Image::create([
                     'ecospaceID' => $ecospace->ecospaceID,
                     'path' => $path,
@@ -912,5 +919,62 @@ class EcospaceController extends Controller
 
         // Redirect owner to their profile page after updating their ecospace
         return redirect()->route('users.show', auth()->id())->with('success', 'EcoSpace updated successfully.');
+    }
+
+    /**
+     * Process an uploaded ecospace image using Intervention Image:
+     * - Resize to fit within max dimensions while preserving aspect ratio
+     * - Add a watermark text 'ecospaces' at the bottom-right
+     * - Encode as JPEG and store on the public disk under ecospace_images/
+     *
+     * Returns the storage path (relative to disk root) on success.
+     */
+    protected function processEcospaceImageUpload($file)
+    {
+        try {
+            // Create Intervention image instance
+            $img = Img::make($file->getRealPath());
+
+            // Determine a sensible max size relative to the uploaded image
+            // If the image is small, keep its size; otherwise cap to these max values.
+            $maxWidth = 1600;
+            $maxHeight = 1200;
+
+            if ($img->width() > $maxWidth || $img->height() > $maxHeight) {
+                $img->resize($maxWidth, $maxHeight, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+            }
+
+            // Add watermark text 'ecospaces' in bottom-right corner
+            $fontPath = '/Library/Fonts/Arial.ttf';
+            if (!file_exists($fontPath)) {
+                $fontPath = null; // Intervention will fall back if possible
+            }
+
+            $fontSize = max(12, (int) round($img->width() / 20));
+
+            $img->text('ecospaces', $img->width() - 12, $img->height() - 12, function ($font) use ($fontPath, $fontSize) {
+                if ($fontPath) $font->file($fontPath);
+                $font->size($fontSize);
+                $font->color('rgba(128,128,128,0.6)');
+                $font->align('right');
+                $font->valign('bottom');
+                $font->angle(0);
+            });
+
+            // Encode and save as JPEG to public disk
+            $encoded = $img->encode('jpg', 85);
+            $filename = 'ecospace_' . time() . '_' . Str::random(8) . '.jpg';
+            $path = 'ecospace_images/' . $filename;
+            Storage::disk('public')->put($path, (string) $encoded);
+
+            return $path;
+        } catch (\Throwable $e) {
+            report($e);
+            // fallback: store original uploaded file
+            return $file->store('ecospace_images', 'public');
+        }
     }
 }

@@ -39,8 +39,9 @@ class ReviewController extends Controller
         $request->validate([
             'rating' => 'required|integer|between:1,5',
             'review' => 'nullable|string|max:2000',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            // limit to maximum 3 files per request
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         $ecospace = Ecospace::findOrFail($ecospaceId);
@@ -104,8 +105,9 @@ class ReviewController extends Controller
         $request->validate([
             'rating' => 'required|integer|between:1,5',
             'review' => 'nullable|string|max:2000',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            // limit to maximum 3 files per request
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:5120',
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer',
         ]);

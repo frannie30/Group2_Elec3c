@@ -11,6 +11,7 @@ use App\Models\Guestlist;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class EventController extends Controller
 {
@@ -23,6 +24,57 @@ class EventController extends Controller
         $pricetiers = \DB::table('tbl_pricetiers')->get();
 
         return view('events.submitevent', compact('eventtypes', 'pricetiers'));
+    }
+
+    /**
+     * Process an uploaded event image using Intervention Image:
+     * - Orientate and resize to fit within max dimensions while preserving aspect ratio
+     * - Add a watermark text 'events' in the bottom-right
+     * - Save to given full storage path (already under storage/app/public)
+     */
+    protected function processEventImageUpload($file, $eventId, $storageFullPath)
+    {
+        try {
+            $img = Image::make($file->getRealPath())->orientate();
+
+            $maxWidth = 1200;
+            $maxHeight = 800;
+            if ($img->width() > $maxWidth || $img->height() > $maxHeight) {
+                $img->resize($maxWidth, $maxHeight, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
+            }
+
+            // Watermark text
+            $fontPath = '/Library/Fonts/Arial.ttf';
+            if (!file_exists($fontPath)) {
+                $fontPath = null;
+            }
+            $fontSize = max(12, (int) round($img->width() / 25));
+            $img->text('events', $img->width() - 12, $img->height() - 12, function ($font) use ($fontPath, $fontSize) {
+                if ($fontPath) $font->file($fontPath);
+                $font->size($fontSize);
+                $font->color('rgba(128,128,128,0.6)');
+                $font->align('right');
+                $font->valign('bottom');
+            });
+
+            // Ensure directory exists
+            $dir = dirname($storageFullPath);
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+            $img->save($storageFullPath, 85);
+        } catch (\Throwable $e) {
+            report($e);
+            // fallback: store original file to public/events/{eventId}
+            try {
+                $fallbackPath = 'events/' . $eventId;
+                $file->store($fallbackPath, 'public');
+            } catch (\Throwable $_) {
+                // nothing else we can do
+            }
+        }
     }
 
     /**
@@ -101,7 +153,8 @@ class EventController extends Controller
             'eventAdd' => 'nullable|string|max:255',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             'eventDesc' => 'nullable|string',
-            'images' => 'nullable|array',
+            // limit images to maximum 7 files
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|max:5120',
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_eventImages,eventImageID',
@@ -141,17 +194,25 @@ class EventController extends Controller
             }
         }
 
-        // Add uploaded images
+        // Add uploaded images (process with Intervention Image to preserve aspect ratio and avoid zoom/crop)
         if ($request->hasFile('images')) {
             $maxOrder = EventImage::where('eventID', $event->eventID)->max('order');
             if (!is_numeric($maxOrder)) $maxOrder = -1;
             $index = 0;
+            // Ensure directory exists in storage
+            Storage::disk('public')->makeDirectory('events/' . $event->eventID);
             foreach ($request->file('images') as $file) {
                 if (!$file->isValid()) continue;
-                $path = $file->store('events/' . $event->eventID, 'public');
+                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $relativePath = 'events/' . $event->eventID . '/' . $filename;
+                $storageFullPath = storage_path('app/public/' . $relativePath);
+
+                // Process image: orientate, resize to fit within 1200x800, keep aspect ratio, prevent upsize
+                $this->processEventImageUpload($file, $event->eventID, $storageFullPath);
+
                 EventImage::create([
                     'eventID' => $event->eventID,
-                    'path' => $path,
+                    'path' => $relativePath,
                     'order' => $maxOrder + 1 + $index,
                     'caption' => null,
                 ]);
@@ -175,7 +236,8 @@ class EventController extends Controller
             'eventAdd' => 'nullable|string|max:255',
             'priceTierID' => 'nullable|integer|exists:tbl_pricetiers,priceTierID',
             'eventDesc' => 'nullable|string',
-            'images' => 'nullable|array',
+            // limit images to maximum 7 files
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|max:5120',
             'images_to_remove' => 'nullable|array',
             'images_to_remove.*' => 'integer|exists:tbl_eventImages,eventImageID',
@@ -218,19 +280,23 @@ class EventController extends Controller
             }
         }
 
-        // Add uploaded images
+        // Add uploaded images (owner-facing) - process with Intervention Image
         if ($request->hasFile('images')) {
             $maxOrder = EventImage::where('eventID', $event->eventID)->max('order');
             if (!is_numeric($maxOrder)) $maxOrder = -1;
             $index = 0;
+            Storage::disk('public')->makeDirectory('events/' . $event->eventID);
             foreach ($request->file('images') as $file) {
                 if (!$file->isValid()) continue;
-                $filename = \Illuminate\Support\Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('events/' . $event->eventID, $filename, 'public');
+                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $relativePath = 'events/' . $event->eventID . '/' . $filename;
+                $storageFullPath = storage_path('app/public/' . $relativePath);
+
+                $this->processEventImageUpload($file, $event->eventID, $storageFullPath);
 
                 EventImage::create([
                     'eventID' => $event->eventID,
-                    'path' => $path,
+                    'path' => $relativePath,
                     'order' => $maxOrder + 1 + $index,
                     'caption' => null,
                 ]);
@@ -298,6 +364,8 @@ class EventController extends Controller
             'eventAdd' => 'required|string|min:5|max:255',
             'priceTierID' => 'required|integer|exists:tbl_pricetiers,priceTierID',
             'eventDesc' => 'nullable|string|min:5',
+            // images array limited to 7 files max
+            'images' => 'nullable|array|max:7',
             'images.*' => 'image|max:5120', // 5MB per image
         ]);
 
@@ -327,16 +395,20 @@ class EventController extends Controller
             'isArchived' => false,
         ]);
 
-        // Handle uploaded images
+        // Handle uploaded images for new event: process with Intervention Image so the whole image fits
         if ($request->hasFile('images')) {
+            Storage::disk('public')->makeDirectory('events/' . $event->eventID);
             foreach ($request->file('images') as $i => $file) {
                 if (!$file->isValid()) continue;
                 $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('events/' . $event->eventID, $filename, 'public');
+                $relativePath = 'events/' . $event->eventID . '/' . $filename;
+                $storageFullPath = storage_path('app/public/' . $relativePath);
+
+                $this->processEventImageUpload($file, $event->eventID, $storageFullPath);
 
                 EventImage::create([
                     'eventID' => $event->eventID,
-                    'path' => $path,
+                    'path' => $relativePath,
                     'order' => $i,
                 ]);
             }
