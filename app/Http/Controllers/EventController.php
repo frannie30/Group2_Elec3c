@@ -526,10 +526,21 @@ class EventController extends Controller
     /**
      * Admin preview: standalone events admin page (for UI preview)
      */
-    public function adminEvents()
+    public function adminEvents(Request $request)
     {
-        $events = Event::orderByDesc('eventID')->paginate(5);
-        return view('admin.events', compact('events'));
+        // support sorting: newest (default) or oldest
+        $sort = $request->input('sort', 'newest');
+
+        $query = Event::query();
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            $query->orderByDesc('dateCreated');
+        }
+
+        $events = $query->paginate(5)->withQueryString();
+        return view('admin.events', compact('events', 'sort'));
     }
 
     /**
@@ -537,11 +548,20 @@ class EventController extends Controller
      */
     public function adminEventsCreate()
     {
-        $events = Event::where('statusID', 1)
-            ->with(['user', 'images', 'priceTier', 'eventType'])
-            ->paginate(5, ['*'], 'events_page');
+        $sort = request()->input('sort', 'newest');
 
-        return view('admin.events_create', compact('events'));
+        $query = Event::where('statusID', 1)
+            ->with(['user', 'images', 'priceTier', 'eventType']);
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            $query->orderByDesc('dateCreated');
+        }
+
+        $events = $query->paginate(5, ['*'], 'events_page')->withQueryString();
+
+        return view('admin.events_create', compact('events', 'sort'));
     }
 
     /**
@@ -549,11 +569,20 @@ class EventController extends Controller
      */
     public function adminEventsArchives()
     {
-        $events = Event::onlyTrashed()
-            ->where('statusID', 3)
-            ->with(['user', 'images', 'priceTier', 'eventType'])
-            ->paginate(5, ['*'], 'events_page');
+        $sort = request()->input('sort', 'newest');
 
-        return view('admin.events_archives', compact('events'));
+        $query = Event::onlyTrashed()
+            ->where('statusID', 3)
+            ->with(['user', 'images', 'priceTier', 'eventType']);
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            $query->orderByDesc('dateCreated');
+        }
+
+        $events = $query->paginate(5, ['*'], 'events_page')->withQueryString();
+
+        return view('admin.events_archives', compact('events', 'sort'));
     }
 }

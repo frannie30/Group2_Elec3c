@@ -29,13 +29,13 @@
 
                 {{-- Session messages --}}
                 @if (session('success'))
-                <div class="mb-4 px-4 py-3 rounded-lg bg-pink-100 border border-pink-300 text-pink-800 font-semibold shadow">
+                    <div class="flash-message mb-4 px-4 py-3 rounded-lg bg-pink-100 border border-pink-300 text-pink-800 font-semibold shadow">
                     {{ session('success') }}
                 </div>
                 @endif
 
                 @if (session('error'))
-                <div class="mb-4 px-4 py-3 rounded-lg bg-red-100 border border-red-300 text-red-800 font-semibold shadow">
+                <div class="flash-message mb-4 px-4 py-3 rounded-lg bg-red-100 border border-red-300 text-red-800 font-semibold shadow">
                     {{ session('error') }}
                 </div>
                 @endif

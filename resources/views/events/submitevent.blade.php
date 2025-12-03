@@ -1,11 +1,11 @@
 <x-app-layout>
 
 
-    <div class="py-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 min-h-screen">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white/90 backdrop-blur-lg shadow-2xl sm:rounded-2xl p-10 border border-emerald-200">
-                <h2 class="text-3xl font-extrabold mb-8 text-center text-emerald-700">Add an Event</h2>
-                <p class="text-emerald-600 text-center mb-8">Fill out the form below. Fields marked with <span class="text-emerald-700 font-bold">*</span> are required.</p>
+    <main id="dashboard-main" class="bg-seiun-sky min-h-screen py-12">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg border border-gray-100 shadow-md">
+                <h2 class="text-3xl font-extrabold mb-4 text-center text-dark-green">Add an Event</h2>
+                <p class="text-gray-600 text-center mb-6">Fill out the form below. Fields marked with <span class="text-dark-green font-bold">*</span> are required.</p>
 
                     <form method="POST" action="{{ route('events.store') }}" enctype="multipart/form-data"
                         data-confirm="Are you sure you want to submit this event?" data-composite-address data-address-target="eventAdd">
@@ -13,11 +13,11 @@
 
                     <!-- Event Name -->
                     <div class="mb-6">
-                        <label for="eventName" class="block text-emerald-800 font-semibold mb-2">
-                            <span class="text-emerald-700 font-bold">*</span> Event Name
+                        <label for="eventName" class="block text-sm font-medium text-dark-green mb-2">
+                            <span class="text-dark-green font-bold">*</span> Event Name
                         </label>
                         <input type="text" id="eventName" name="eventName" value="{{ old('eventName') }}"
-                               class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400"
+                               class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20"
                                placeholder="e.g. Community Cleanup">
                         @error('eventName')
                         <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
@@ -27,7 +27,7 @@
                     <!-- Event Type -->
                     <div class="mb-6">
                         <label for="eventTypeID" class="block text-emerald-800 font-semibold mb-2">Event Type</label>
-                        <select id="eventTypeID" name="eventTypeID" required class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                        <select id="eventTypeID" name="eventTypeID" required class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20">
                             <option value="" disabled selected>-- Select event type --</option>
                             @if(isset($eventtypes))
                                 @foreach($eventtypes as $et)
@@ -47,7 +47,7 @@
                         <div>
                             <label for="eventDate" class="block text-emerald-800 font-semibold mb-2">Event Date & Time</label>
                             <input type="datetime-local" id="eventDate" name="eventDate" value="{{ old('eventDate') }}"
-                                class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                                class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20">
                             @error('eventDate')
                             <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
                             @enderror
@@ -55,9 +55,9 @@
                         <div>
                                 <label class="block text-emerald-800 font-semibold mb-2">Address</label>
                                 <div class="grid grid-cols-1 gap-3">
-                                    <input type="text" data-address-line name="event_address_line" id="event_address_line" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400" placeholder="Street, building, number" />
+                                    <input type="text" data-address-line name="event_address_line" id="event_address_line" class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20" placeholder="Street, building, number" />
 
-                                    <select data-barangay name="event_barangay" id="event_barangay" class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                                    <select data-barangay name="event_barangay" id="event_barangay" class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20">
                                         <option value="" disabled selected>-- Select Barangay (Makati) --</option>
                                         <option>Bangkal</option>
                                         <option>Bel-Air</option>
@@ -94,7 +94,7 @@
                         <input type="hidden" name="statusID" value="1">
                         <div>
                             <label for="priceTierID" class="block text-emerald-800 font-semibold mb-2">Price Tier</label>
-                            <select id="priceTierID" name="priceTierID" required class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400">
+                            <select id="priceTierID" name="priceTierID" required class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20">
                                 <option value="" disabled selected>-- Select price tier --</option>
                                 @if(isset($pricetiers))
                                     @foreach($pricetiers as $pt)
@@ -112,9 +112,9 @@
 
                     <!-- Description -->
                     <div class="mb-6">
-                        <label for="eventDesc" class="block text-emerald-800 font-semibold mb-2">Description</label>
+                        <label for="eventDesc" class="block text-sm font-medium text-dark-green mb-2">Description</label>
                         <textarea id="eventDesc" name="eventDesc" rows="4"
-                                  class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50 focus:ring-2 focus:ring-emerald-400"
+                                  class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:ring-2 focus:ring-magenta-secondary/20"
                                   placeholder="Describe the event (optional)">{{ old('eventDesc') }}</textarea>
                         @error('eventDesc')
                         <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
@@ -123,10 +123,10 @@
 
                     <!-- Images upload -->
                     <div class="mb-6">
-                           <label for="images" class="block text-emerald-800 font-semibold mb-2">Upload Images</label>
+                           <label for="images" class="block text-sm font-medium text-dark-green mb-2">Upload Images</label>
                            <input type="file" id="images" name="images[]" multiple accept="image/*"
-                               class="w-full border-2 border-emerald-200 rounded-xl px-4 py-3 bg-emerald-50">
-                           <p class="text-sm text-emerald-500 mt-2">You may upload multiple images (jpg, png, gif, webp). Max size per image 5MB.</p>
+                               class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white">
+                           <p class="text-sm text-gray-500 mt-2">You may upload multiple images (jpg, png, gif, webp). Max size per image 5MB.</p>
                         @error('images')
                         <div class="text-red-500 mt-2 text-sm">{{ $message }}</div>
                         @enderror
@@ -137,12 +137,12 @@
 
                     <!-- Buttons -->
                     <div class="flex justify-center gap-4 mt-8">
-                        <button type="submit" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 hover:scale-105 transition">
+                        <button type="submit" class="bg-magenta-secondary text-white px-6 py-2 rounded-md font-semibold shadow-sm hover:bg-magenta-secondary/90 transition">
                             Submit Event
                         </button>
-                                <a href="{{ route('index.index') }}"
-                                    class="bg-gray-300 text-emerald-800 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-400 hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-emerald-400 text-center"
-                                    data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">
+                        <a href="{{ route('index.index') }}"
+                           class="text-magenta-secondary px-4 py-2 rounded-md font-medium"
+                           data-confirm="Are you sure you want to cancel? Any unsaved changes will be lost.">
                             Cancel
                         </a>
                     </div>

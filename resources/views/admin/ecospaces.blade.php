@@ -30,13 +30,13 @@
 
                 {{-- Session messages --}}
                 @if (session('success'))
-                <div class="mb-4 px-4 py-3 rounded-lg bg-green-100 border border-green-300 text-green-800 font-semibold shadow">
+                    <div class="flash-message mb-4 px-4 py-3 rounded-lg bg-green-100 border border-green-300 text-green-800 font-semibold shadow">
                     {{ session('success') }}
                 </div>
                 @endif
 
                 @if (session('error'))
-                <div class="mb-4 px-4 py-3 rounded-lg bg-red-100 border border-red-300 text-red-800 font-semibold shadow">
+                <div class="flash-message mb-4 px-4 py-3 rounded-lg bg-red-100 border border-red-300 text-red-800 font-semibold shadow">
                     {{ session('error') }}
                 </div>
                 @endif
@@ -46,6 +46,11 @@
                         <h1 id="page-title" class="text-3xl font-bold text-gray-900">Manage EcoSpaces</h1>
                     </div>
                     <div class="flex gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">Sort:</span>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" class="px-3 py-1 rounded-md text-sm {{ (isset($sort) && $sort === 'newest') || !isset($sort) ? 'bg-gray-200' : 'bg-white' }}">Newest</a>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'oldest']) }}" class="px-3 py-1 rounded-md text-sm {{ isset($sort) && $sort === 'oldest' ? 'bg-gray-200' : 'bg-white' }}">Oldest</a>
+                        </div>
                     </div>
                 </div>
 

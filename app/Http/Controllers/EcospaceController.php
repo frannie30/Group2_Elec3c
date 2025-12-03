@@ -230,7 +230,7 @@ class EcospaceController extends Controller
                         ->where('isPro', 1)
                         ->with('user')
                         ->orderByDesc('dateCreated')
-                        ->paginate(5, ['*'], 'pros_page')
+                        ->paginate(4, ['*'], 'pros_page')
                         ->withQueryString();
 
                     $cons = collect();
@@ -239,7 +239,7 @@ class EcospaceController extends Controller
                         ->where('isPro', 0)
                         ->with('user')
                         ->orderByDesc('dateCreated')
-                        ->paginate(5, ['*'], 'cons_page')
+                        ->paginate(4, ['*'], 'cons_page')
                         ->withQueryString();
 
                     $pros = collect();
@@ -249,14 +249,14 @@ class EcospaceController extends Controller
                         ->where('isPro', 1)
                         ->with('user')
                         ->orderByDesc('dateCreated')
-                        ->paginate(5, ['*'], 'pros_page')
+                        ->paginate(4, ['*'], 'pros_page')
                         ->withQueryString();
 
                     $cons = ProAndCon::where('ecospaceID', $ecospace->ecospaceID)
                         ->where('isPro', 0)
                         ->with('user')
                         ->orderByDesc('dateCreated')
-                        ->paginate(5, ['*'], 'cons_page')
+                        ->paginate(4, ['*'], 'cons_page')
                         ->withQueryString();
                 }
 
@@ -282,7 +282,7 @@ class EcospaceController extends Controller
                     $reviewsQuery = $reviewsQuery->orderByDesc('dateCreated');
                 }
 
-                $reviews = $reviewsQuery->paginate(5, ['*'], 'reviews_page')->withQueryString();
+                $reviews = $reviewsQuery->paginate(4, ['*'], 'reviews_page')->withQueryString();
 
                 // Debug: log paginator class and count to help diagnose pagination issues
                 try {
@@ -574,10 +574,12 @@ class EcospaceController extends Controller
         // Pending ecospaces use statusID = 1
         $ecospaces = Ecospace::where('statusID', 1)
             ->with(['user', 'status', 'priceTier'])
+            ->orderByDesc('dateCreated')
             ->paginate(5);
         // Also fetch pending events for the admin create page
         $events = Event::where('statusID', 1)
             ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->orderByDesc('dateCreated')
             ->paginate(5, ['*'], 'events_page');
 
         return view('admin.create', compact('ecospaces', 'events'));
@@ -589,10 +591,12 @@ class EcospaceController extends Controller
         // Approved ecospaces use statusID = 2
         $ecospaces = Ecospace::where('statusID', 2)
             ->with(['user', 'status', 'priceTier'])
+            ->orderByDesc('dateCreated')
             ->paginate(5);
         // Also load approved events for display on admin dashboard
         $events = Event::where('statusID', 2)
             ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->orderByDesc('dateCreated')
             ->paginate(5, ['*'], 'events_page');
 
         // Include users listing for admin index
@@ -608,11 +612,13 @@ class EcospaceController extends Controller
         $ecospaces = Ecospace::onlyTrashed()
             ->where('statusID', 3)
             ->with(['user', 'status', 'priceTier'])
+            ->orderByDesc('dateCreated')
             ->paginate(5);
         // Also fetch trashed events (statusID = 3) for display in archives
         $events = Event::onlyTrashed()
             ->where('statusID', 3)
             ->with(['user', 'images', 'priceTier', 'eventType'])
+            ->orderByDesc('dateCreated')
             ->paginate(5, ['*'], 'events_page');
 
         // Also include trashed users for admin archives (unarchive option)
@@ -624,10 +630,21 @@ class EcospaceController extends Controller
     /**
      * Admin preview: standalone ecospaces admin page (for UI preview)
      */
-    public function adminEcospaces()
+    public function adminEcospaces(HttpRequest $request)
     {
-        $ecospaces = Ecospace::orderByDesc('dateCreated')->paginate(5);
-        return view('admin.ecospaces', compact('ecospaces'));
+        $sort = $request->input('sort', 'newest');
+
+        $query = Ecospace::query();
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            // default to newest first
+            $query->orderByDesc('dateCreated');
+        }
+
+        $ecospaces = $query->paginate(5)->withQueryString();
+        return view('admin.ecospaces', compact('ecospaces', 'sort'));
     }
 
     /**
@@ -635,10 +652,20 @@ class EcospaceController extends Controller
      */
     public function adminEcospacesCreate()
     {
-        $ecospaces = Ecospace::where('statusID', 1)
-            ->with(['user', 'status', 'priceTier'])
-            ->paginate(5);
-        return view('admin.ecospaces_create', compact('ecospaces'));
+        // support sort query (newest|oldest)
+        $sort = request()->input('sort', 'newest');
+
+        $query = Ecospace::where('statusID', 1)
+            ->with(['user', 'status', 'priceTier']);
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            $query->orderByDesc('dateCreated');
+        }
+
+        $ecospaces = $query->paginate(5)->withQueryString();
+        return view('admin.ecospaces_create', compact('ecospaces', 'sort'));
     }
 
     /**
@@ -646,12 +673,21 @@ class EcospaceController extends Controller
      */
     public function adminEcospacesArchives()
     {
-        $ecospaces = Ecospace::onlyTrashed()
-            ->where('statusID', 3)
-            ->with(['user', 'status', 'priceTier'])
-            ->paginate(5);
+        $sort = request()->input('sort', 'newest');
 
-        return view('admin.ecospaces_archives', compact('ecospaces'));
+        $query = Ecospace::onlyTrashed()
+            ->where('statusID', 3)
+            ->with(['user', 'status', 'priceTier']);
+
+        if ($sort === 'oldest') {
+            $query->orderBy('dateCreated', 'asc');
+        } else {
+            $query->orderByDesc('dateCreated');
+        }
+
+        $ecospaces = $query->paginate(5)->withQueryString();
+
+        return view('admin.ecospaces_archives', compact('ecospaces', 'sort'));
     }
 
     public function approve($id)

@@ -137,6 +137,22 @@
             </script>
         @endif
         <script>
+            // Auto-hide inline flash messages (not the SweetAlert toasts) after 4 seconds
+            (function(){
+                const FLASH_SELECTOR = '.flash-message';
+                const DELAY = 4000; // ms
+                setTimeout(() => {
+                    document.querySelectorAll(FLASH_SELECTOR).forEach(el => {
+                        try {
+                            el.style.transition = 'opacity 400ms ease';
+                            el.style.opacity = '0';
+                            setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 500);
+                        } catch (e) { /* ignore */ }
+                    });
+                }, DELAY);
+            })();
+        </script>
+        <script>
             // Combine address parts into a single hidden input for forms that opt-in
             (function(){
                 function trim(s){ return (s||'').toString().trim(); }
@@ -176,6 +192,15 @@
                     // allow submit to continue
                 }, true);
             })();
+        </script>
+        <script>
+            // When Jetstream triggers a navigation refresh (profile photo updates/deletes),
+            // reload the page so non-Livewire views (public profile, avatars, etc.) update.
+            if (window.Livewire) {
+                Livewire.on && Livewire.on('refresh-navigation-menu', function() {
+                    try { window.location.reload(); } catch (e) { /* ignore */ }
+                });
+            }
         </script>
     </body>
 </html>
