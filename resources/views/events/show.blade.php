@@ -3,7 +3,7 @@
 
     @if(empty($event))
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="w-full px-4 sm:px-6 lg:px-8">
                 <div class="bg-white shadow-sm sm:rounded-2xl p-6 border border-gray-100 text-center text-gray-700">
                     <h3 class="text-xl font-semibold">No event selected</h3>
                     <p class="mt-2">We couldn't find the event you requested. Try selecting one from the list.</p>
@@ -13,10 +13,10 @@
         </div>
     @else
     <div class="py-12 bg-green-50 min-h-screen">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4">
-                    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+                    <div class="flash-message bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
                         {{ session('success') }}
                     </div>
                 </div>
@@ -90,8 +90,8 @@
 
         {{-- Guestlist (organizer only) --}}
         @auth
-            @if(auth()->id() == $event->userID)
-                <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 mt-8">
+                @if(auth()->id() == $event->userID)
+                <div class="w-full px-4 sm:px-6 lg:px-8 mt-8">
                     <div class="bg-white shadow-sm sm:rounded-2xl p-6 border border-gray-100">
                         <h4 class="text-2xl font-bold text-gray-900 mb-3">Guestlist</h4>
                         @if(!empty($guestlist) && $guestlist->count())

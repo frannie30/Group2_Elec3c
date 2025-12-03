@@ -51,7 +51,7 @@
                             <button type="submit" class="px-4 py-2 bg-magenta-secondary text-white rounded">Apply</button>
                         </form>
                     </div>
-                    <a href="{{ route('dashboard') }}" class="text-[color:var(--brand-green)] font-semibold hover:underline text-lg">Back to preview &gt;</a>
+                    {{-- Back to preview removed per UI update request --}}
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">

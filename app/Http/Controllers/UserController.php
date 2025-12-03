@@ -115,10 +115,14 @@ class UserController extends Controller
             $request->validate($rules);
         }
 
-        // Handle profile image upload
+        // Handle profile image upload using Jetstream's profile photo handling
         if ($request->hasFile('profile_image')) {
-            $path = $request->file('profile_image')->store('profiles', 'public');
-            $user->profile_image = $path;
+            try {
+                $user->updateProfilePhoto($request->file('profile_image'));
+            } catch (\Throwable $e) {
+                report($e);
+                return redirect()->back()->with('error', 'Failed to save profile image.');
+            }
         }
 
         if ($request->filled('name')) {
@@ -196,11 +200,20 @@ class UserController extends Controller
      */
     public function adminIndex(HttpRequest $request)
     {
-        $users = User::with('userType')
-            ->orderBy('name')
-            ->paginate(5);
+        // Allow admin to sort users (newest/default or oldest)
+        $sort = $request->input('sort', 'newest');
 
-        return view('admin.accounts', compact('users'));
+        $query = User::with('userType');
+
+        if ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        $users = $query->paginate(5)->withQueryString();
+
+        return view('admin.accounts', compact('users', 'sort'));
     }
 
     /**
@@ -299,7 +312,16 @@ class UserController extends Controller
      */
     public function archives(HttpRequest $request)
     {
-        $users = User::onlyTrashed()->with('userType')->paginate(5);
-        return view('admin.users_archives', compact('users'));
+        $sort = $request->input('sort', 'newest');
+
+        $query = User::onlyTrashed()->with('userType');
+        if ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        $users = $query->paginate(5)->withQueryString();
+        return view('admin.users_archives', compact('users', 'sort'));
     }
 }

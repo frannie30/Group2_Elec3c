@@ -27,7 +27,11 @@
                     <div class="flex items-center gap-4">
                         <h1 class="text-3xl font-bold text-gray-900">Event Archives</h1>
                     </div>
-                    <div class="hidden md:block text-sm text-gray-500">Use the sidebar to access Current / Add New / View Archives</div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-600">Sort:</span>
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" class="px-3 py-1 rounded-md text-sm {{ (isset($sort) && $sort === 'newest') || !isset($sort) ? 'bg-gray-200' : 'bg-white' }}">Newest</a>
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'oldest']) }}" class="px-3 py-1 rounded-md text-sm {{ isset($sort) && $sort === 'oldest' ? 'bg-gray-200' : 'bg-white' }}">Oldest</a>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
